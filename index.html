@@ -440,7 +440,7 @@ const store={
   set(k,v){try{localStorage.setItem('nf.'+k,JSON.stringify(v))}catch(e){}}
 };
 
-const VERSION='3.3';                 /* bump on every published change; shown in the game as "v.2.5" */
+const VERSION='3.4';                 /* bump on every published change; shown in the game as "v.2.5" */
 /* the HUD typeface: "Migdal HaEmek" (a very heavy, blocky Hebrew face by Elad Mizrahi, SIL Open Font License), embedded in the page as a data: font when its file sits in
    assets/fonts (build.py does that). It has Hebrew letters only, so digits and Latin letters come from Heebo (its 900 weight is the same blocky class); Secular One is the last
    resort. UIFONT_ON is set once the browser has really loaded the face (uiFontsReady); until then, or when it is not embedded, the HUD keeps the v3.0 type (Secular One, 400). */
@@ -2150,6 +2150,36 @@ function paintNeck(ctx,C,sk,col,ow){
   ctx.lineCap='round'; ctx.strokeStyle=g; ctx.lineWidth=R.rt*1.5; ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
 }
 
+/* ---------- v3.4: necklines and shirt tails ----------
+   The collar used to be ONE sharp triangle drawn over the chin: under the face it read as an arrow head. Now every painter has a neck() that is drawn between the shirt and the head
+   (the chin overlaps it, as in life). The neck (skin) shows only inside the opening of the neckline, and the opening is bounded by soft shapes: a rounded ribbed band (crew neck, round
+   collar) or two folded collar wings that lie on the shoulders with a V between them. P(u,v) is the torso frame, T the length of the torso (the neck sits at u = T). */
+const _VAng=P=>{ const o=P(0,0),e=P(0,1); return Math.atan2(e[1]-o[1],e[0]-o[0]); };      /* the angle of the "forward" axis of the torso frame (it leans with the body) */
+function neckPath(ctx,P,T,hw,dp,vee){          /* the opening: a rounded U (vee false) or a V with a rounded tip, running up behind the head */
+  const a=P(T+14,-hw*1.05), b=P(T+14,hw*1.05), s0=P(T+3,-hw), s1=P(T+3,hw);
+  ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(s0[0],s0[1]);
+  if(vee){ const t0=P(T-dp+5,-2), t1=P(T-dp+5,2), tip=P(T-dp,0); ctx.lineTo(t0[0],t0[1]); ctx.quadraticCurveTo(tip[0],tip[1],t1[0],t1[1]); }
+  else { const c=P(T+3,0); ctx.ellipse(c[0],c[1],hw,dp+3,_VAng(P),Math.PI,2*Math.PI); }
+  ctx.lineTo(s1[0],s1[1]); ctx.lineTo(b[0],b[1]); ctx.closePath();
+}
+function neckIn(ctx,C,sk,col,ow,P,T,hw,dp,vee){      /* the skin of the neck, only inside the opening */
+  ctx.save(); neckPath(ctx,P,T,hw,dp,vee); ctx.clip(); paintNeck(ctx,C,sk,col,ow); ctx.restore();
+}
+function ribBand(ctx,P,T,hw,dp,th,fill,ow){          /* the ribbed band round a crew neck: a half ring of even thickness below the chin */
+  const c=P(T+3,0), rot=_VAng(P);
+  ctx.beginPath(); ctx.ellipse(c[0],c[1],hw+th,dp+3+th,rot,Math.PI,2*Math.PI); ctx.ellipse(c[0],c[1],hw,dp+3,rot,2*Math.PI,Math.PI,true); ctx.closePath();
+  fillStroke(ctx,fill,ow*.7);
+}
+function collarWings(ctx,P,T,hw,dp,fill,ow,crease){   /* two folded collar wings beside the V: a rounded collar point on each shoulder, nothing pointing at the chest */
+  const ex=dp>13?3.6:2.6;
+  for(const sg of [-1,1]){
+    const A=P(T+4,sg*(hw-1)), B=P(T+4.5,sg*(hw+6.5)), Q=P(T-2.5-ex*.4,sg*(hw+8.4)), Cc=P(T-8.6-ex,sg*(hw+4.2)), D=P(T-dp+3,sg*3);
+    ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.lineTo(B[0],B[1]); ctx.quadraticCurveTo(Q[0],Q[1],Cc[0],Cc[1]); ctx.quadraticCurveTo(P(T-dp*.55,sg*(hw*.5))[0],P(T-dp*.55,sg*(hw*.5))[1],D[0],D[1]); ctx.closePath();
+    fillStroke(ctx,fill,ow*.7);
+    if(crease){ const a=P(T+2,sg*(hw+1.5)), b=P(T-6,sg*(hw+3.4)); ctx.strokeStyle=crease; ctx.lineWidth=1.1; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke(); }
+  }
+}
+
 /* a few cloth creases (torso-local u,v pairs -> curved ink strokes in the shade colour of the garment) */
 function folds(ctx,P,defs,col,w){
   ctx.strokeStyle=col; ctx.lineWidth=w||1.6; ctx.lineCap='round'; ctx.globalAlpha=.85;
@@ -2181,10 +2211,8 @@ function paintDaniel(ctx,C,f,sk,col,ow,view){
     const bp=P(R.torso*.62,R.wch*.46); ctx.save(); ctx.translate(bp[0],bp[1]); ctx.rotate(-lean);
     ctx.fillStyle=dark(col.shirt,.16); rrect(ctx,-5.5,-6,11,12,2); ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=1; ctx.stroke();
     ctx.fillStyle='#f3efe4'; ctx.fillRect(-3,-9,2.4,5); ctx.fillRect(0,-9,2.4,5); ctx.restore();
-    // collar
-    const c0=P(R.torso-4,-9),c1=P(R.torso-4,9),c2=P(R.torso-11,0);
-    ctx.beginPath(); ctx.moveTo(c0[0],c0[1]); ctx.lineTo(c1[0],c1[1]); ctx.lineTo(c2[0],c2[1]); ctx.closePath(); fillStroke(ctx,dark(col.shirt,.15),ow*.7);
   },
+  neck:()=>{ const T=R.torso; neckIn(ctx,C,sk,col,ow*.8,P,T,9.5,14,true); collarWings(ctx,P,T,9.5,14,dark(col.shirt,.12),ow,dark(col.shirt,.34)); },
   hip:()=>{
     // waist apron (tool belt) with scissors pocket: it hangs over the top of the leg
     const a0=P(-5,-R.whp*1.06),a1=P(-5,R.whp*1.12),a2=P(R.torso*.34,R.wwa*1.02),a3=P(R.torso*.34,-R.wwa*.98);
@@ -2202,10 +2230,7 @@ function paintDaniel(ctx,C,f,sk,col,ow,view){
     limb(ctx,pts,ws,sl,ow,lite(col.shirt,.3),'arm',{open:!back,t1:.62,sw:.55,ease:1.1,flare:2.2,flat:true,hem:dark(sl,.3),hemW:3.6});      // short rolled sleeve
     handPaint(ctx,C,A.hx,A.hy,c,R,!back,null,ow,fa(A));
   },
-  collar:()=>{
-    const c0=P(R.torso-3,-11),c1=P(R.torso-3,11),c2=P(R.torso-12,0);
-    ctx.beginPath(); ctx.moveTo(c0[0],c0[1]); ctx.quadraticCurveTo(P(R.torso+1,0)[0],P(R.torso+1,0)[1],c1[0],c1[1]); ctx.lineTo(c2[0],c2[1]); ctx.closePath(); fillStroke(ctx,dark(col.shirt,.1),ow*.7);
-  }};
+  collar:()=>{}};
 }
 
 /* --- Adir: soldier (olive uniform, tactical vest w/ mag pouches, kneepads, boots, fingerless glove) --- */
@@ -2247,10 +2272,8 @@ function paintAdir(ctx,C,f,sk,col,ow,view){
     limb(ctx,pts,[R.ra*2.05,R.rf*2],sl,ow,lite(sl,.25),'arm',{open:!back,t1:1.86,sw:.5,ease:1.5,flare:.8,flat:true,hem:dark(sl,.3),hemW:3.2});      // long sleeve down to the glove
     handPaint(ctx,C,A.hx,A.hy,c,R,!back,back?'#1d1d1a':'#24241f',ow,fa(A));
   },
-  collar:()=>{
-    const c0=P(R.torso-3,-11),c1=P(R.torso-3,11),c2=P(R.torso-11,0);
-    ctx.beginPath(); ctx.moveTo(c0[0],c0[1]); ctx.quadraticCurveTo(P(R.torso+1,0)[0],P(R.torso+1,0)[1],c1[0],c1[1]); ctx.lineTo(c2[0],c2[1]); ctx.closePath(); fillStroke(ctx,dark(col.shirt,.22),ow*.7);
-  }};
+  neck:()=>{ const T=R.torso; neckIn(ctx,C,sk,col,ow*.8,P,T,9.5,13,true); collarWings(ctx,P,T,9.5,13,dark(col.shirt,.2),ow,dark(col.shirt,.42)); },
+  collar:()=>{}};
 }
 
 /* --- Liron: the gambling courier in a goalkeeper kit (long-sleeve blue jersey with a dice badge, black shorts and knee socks, football boots, big lime goalkeeper gloves) --- */
@@ -2299,11 +2322,8 @@ function paintLiron(ctx,C,f,sk,col,ow,view){
     limb(ctx,pts,ws,sl,ow,lite(col.shirt,.28),'arm',{open:!back,t1:1.8,sw:.5,ease:1.3,flare:.7,flat:true,hem:back?'#aeb6cc':'#eef2ff',hemW:3});      // the long jersey sleeve down to the glove
     handPaint(ctx,C,A.hx,A.hy,col.skin,Rg,!back,back?'#97b52a':'#c6ee3b',ow,fa(A),1);
   },
-  collar:()=>{
-    /* ribbed white crew neck */
-    const c0=P(T-2,-R.wsh*.95),c1=P(T-2,R.wsh*.95),c2=P(T-10,0);
-    ctx.beginPath(); ctx.moveTo(c0[0],c0[1]); ctx.quadraticCurveTo(P(T+3,0)[0],P(T+3,0)[1],c1[0],c1[1]); ctx.lineTo(c2[0],c2[1]); ctx.closePath(); fillStroke(ctx,'#eef2ff',ow*.7);
-  }};
+  neck:()=>{ neckIn(ctx,C,sk,col,ow*.8,P,T,10.5,11,false); ribBand(ctx,P,T,10.5,11,3.2,'#eef2ff',ow); },      /* ribbed white crew neck */
+  collar:()=>{}};
 }
 
 /* --- Geula: cleaning lady / kindergarten teacher (pink smock, white apron with spray bottles, yellow rubber gloves, white clogs) --- */
@@ -2353,10 +2373,8 @@ function paintGeula(ctx,C,f,sk,col,ow,view){
     limb(ctx,pts,ws,gl,ow,'#fff3a0','arm',{t0:1.3,t1:1.97,sw:.4,ease:1.5,flare0:2.4,flat0:true});                                         // the rubber glove up the forearm
     handPaint(ctx,C,A.hx,A.hy,gl,R,!back,null,ow,fa(A));
   },
-  collar:()=>{
-    const c0=P(R.torso-3,-11),c1=P(R.torso-3,11),c2=P(R.torso-12,0);
-    ctx.beginPath(); ctx.moveTo(c0[0],c0[1]); ctx.quadraticCurveTo(P(R.torso+1,0)[0],P(R.torso+1,0)[1],c1[0],c1[1]); ctx.lineTo(c2[0],c2[1]); ctx.closePath(); fillStroke(ctx,'#f6f7fb',ow*.7);
-  }};
+  neck:()=>{ const T=R.torso; neckIn(ctx,C,sk,col,ow*.8,P,T,10.5,10,false); ribBand(ctx,P,T,10.5,10,4.2,'#f6f7fb',ow); },      /* a round white collar */
+  collar:()=>{}};
 }
 
 /* --- Eli: minibus driver (white polo with the company logo on the chest, navy trousers, black shoes) --- */
@@ -2391,11 +2409,8 @@ function paintEli(ctx,C,f,sk,col,ow,view){
     limb(ctx,pts,ws,sl,ow,lite(sl,.3),'arm',{open:!back,t1:.46,sw:.5,ease:1.1,flare:2.2,flat:true,hem:dark(sl,.22),hemW:3});      // short polo sleeve
     handPaint(ctx,C,A.hx,A.hy,c,R,!back,null,ow,fa(A));
   },
-  collar:()=>{
-    const c0=P(R.torso-3,-12),c1=P(R.torso-3,12),c2=P(R.torso-12,0);
-    ctx.beginPath(); ctx.moveTo(c0[0],c0[1]); ctx.quadraticCurveTo(P(R.torso+1,0)[0],P(R.torso+1,0)[1],c1[0],c1[1]); ctx.lineTo(c2[0],c2[1]); ctx.closePath(); fillStroke(ctx,lite(col.shirt,.05),ow*.7);
-    ctx.strokeStyle=dark(col.shirt,.18); ctx.lineWidth=1.2; ctx.beginPath(); ctx.moveTo(c2[0],c2[1]); ctx.lineTo(P(R.torso-18,0)[0],P(R.torso-18,0)[1]); ctx.stroke();
-  }};
+  neck:()=>{ const T=R.torso; neckIn(ctx,C,sk,col,ow*.8,P,T,9.8,14.5,true); collarWings(ctx,P,T,9.8,14.5,lite(col.shirt,.04),ow,dark(col.shirt,.22)); },
+  collar:()=>{}};
 }
 /* --- Liav: oversized beige tee, black joggers with white drawstrings, navy "Campus" sneakers, thin silver chain, gold bracelet --- */
 function paintLiav(ctx,C,f,sk,col,ow,view){
@@ -2410,12 +2425,21 @@ function paintLiav(ctx,C,f,sk,col,ow,view){
     { const cc=back?'#1b1b22':'#2a2a33', ex=L.hx+ux*k, ey=L.hy+3+uy*k; bar(ctx,L.hx,L.hy+3,ex,ey,R.rs*1.12,cc,ow*.9); ctx.strokeStyle='rgba(255,255,255,.16)'; ctx.lineWidth=1.2; const nx=-uy/ud*R.rs*.95, ny=ux/ud*R.rs*.95; for(const q of [.35,.68]){ ctx.beginPath(); ctx.moveTo(L.hx+(ex-L.hx)*q+nx,L.hy+3+(ey-L.hy-3)*q+ny); ctx.lineTo(L.hx+(ex-L.hx)*q-nx,L.hy+3+(ey-L.hy-3)*q-ny); ctx.stroke(); } }
     footPaint(ctx,C,L,col,0,ow);
   };
-  return {leg,torso:()=>{
-    /* a soft belly: the front of the waist and hips bulges more than the back */
-    const tp=[P(-4,-R.whp*.96),P(T*.35,-R.wwa*.96),P(T*.72,-R.wch*.97),P(T-3,-R.wsh-6),P(T+2,0),P(T-3,R.wsh+6),P(T*.72,R.wch*1.08),P(T*.35,R.wwa*1.3),P(-4,R.whp*1.3),P(-9,0)];
+  return {leg,late:true,torso:()=>{
+    /* white drawstring cords come out from under the tee and hang down the front of the thigh (drawn first: the tee is over them) */
+    for(const [v,len,dx] of [[.78,30,3.5],[.36,24,8]]){
+      const a=P(-9,R.whp*v), x1=a[0]+dx, y1=a[1]-len;
+      ctx.lineCap='round'; ctx.strokeStyle=INK; ctx.lineWidth=4.2; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.quadraticCurveTo(a[0]+dx*.2,a[1]-len*.55,x1,y1); ctx.stroke();
+      ctx.strokeStyle='#f6f6f1'; ctx.lineWidth=2.4; ctx.stroke();
+      ctx.fillStyle='#2a2a31'; ctx.beginPath(); ctx.ellipse(x1,y1-1,2.1,3.4,0,0,7); ctx.fill();
+    }
+    /* the oversized tee is ONE shape: a soft belly (the front bulges more than the back), then the tails hang over the top of the joggers, flaring a little, with a curved hem */
+    const wh=R.whp;
+    const tp=[P(-2,-wh*1.02),P(T*.35,-R.wwa*.96),P(T*.72,-R.wch*.97),P(T-3,-R.wsh-6),P(T+2,0),P(T-3,R.wsh+6),P(T*.72,R.wch*1.08),P(T*.35,R.wwa*1.3),P(-2,wh*1.4),P(-15,wh*1.44),P(-20,wh*.1),P(-18,-wh*1.14)];
     blobShaded(ctx,tp,col.shirt,ow,6.5,3,-3.5,-3);
-    /* fabric folds of the oversized tee */
+    /* fabric folds of the oversized tee, and the stitched hem */
     folds(ctx,P,[[T*.78,-R.wch*.2,T*.5,R.wch*.18,3],[T*.5,-R.wwa*.1,T*.2,R.wwa*.5,2],[T*.62,R.wch*.3,T*.3,R.wwa*.85,-2]],'#8a7650',1.7);
+    { const h0=P(-14.5,-wh*.95),h1=P(-12.5,wh*1.2),hm=P(-17.4,wh*.1); ctx.strokeStyle='rgba(90,76,52,.45)'; ctx.lineWidth=1.3; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(h0[0],h0[1]); ctx.quadraticCurveTo(hm[0],hm[1],h1[0],h1[1]); ctx.stroke(); }
   },
   arm:(A,sh,back)=>{
     const c=back?col.skin2:col.skin, sl=back?dark(col.shirt,.2):col.shirt, pts=[[sh.x,sh.y],[A.ex,A.ey],[A.hx,A.hy]], ws=[R.ra*2,R.rf*2];
@@ -2428,23 +2452,8 @@ function paintLiav(ctx,C,f,sk,col,ow,view){
     }
     handPaint(ctx,C,A.hx,A.hy,c,R,!back,null,ow,fa(A));
   },
+  neck:()=>{ neckIn(ctx,C,sk,col,ow*.8,P,T,11,11,false); ribBand(ctx,P,T,11,11,3.4,dark(col.shirt,.12),ow); },      /* ribbed crew neck */
   collar:()=>{
-    /* white drawstring cords hang out under the hem of the tee, down the front of the thigh */
-    for(const [v,len,dx] of [[.78,30,3.5],[.36,24,8]]){
-      const a=P(-9,R.whp*v), x1=a[0]+dx, y1=a[1]-len;
-      ctx.lineCap='round'; ctx.strokeStyle=INK; ctx.lineWidth=4.2; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.quadraticCurveTo(a[0]+dx*.2,a[1]-len*.55,x1,y1); ctx.stroke();
-      ctx.strokeStyle='#f6f6f1'; ctx.lineWidth=2.4; ctx.stroke();
-      ctx.fillStyle='#2a2a31'; ctx.beginPath(); ctx.ellipse(x1,y1-1,2.1,3.4,0,0,7); ctx.fill();
-    }
-    /* the hem of the oversized tee hangs over the top of the joggers */
-    const hem=[P(T*.42,-R.wwa*.98),P(T*.42,R.wwa*1.3),P(-4,R.whp*1.42),P(-17,R.whp*1.24),P(-18,-R.whp*1.04),P(-5,-R.whp*1.06)];
-    const q0=P(0,-R.wch),q1=P(0,R.wch*1.3), g=ctx.createLinearGradient(q0[0],q0[1],q1[0],q1[1]);
-    g.addColorStop(0,col.shirt2); g.addColorStop(.5,col.shirt); g.addColorStop(1,lite(col.shirt,.2));
-    smooth(ctx,hem); ctx.fillStyle=g; ctx.fill(); ctx.lineWidth=ow*.9; ctx.strokeStyle=INK; ctx.lineJoin='round'; ctx.stroke();
-    const h0=P(-15.5,-R.whp*.95),h1=P(-15.5,R.whp*1.18); ctx.strokeStyle='rgba(90,76,52,.45)'; ctx.lineWidth=1.3; ctx.beginPath(); ctx.moveTo(h0[0],h0[1]); ctx.lineTo(h1[0],h1[1]); ctx.stroke();
-    /* ribbed crew neck */
-    const c0=P(T-2,-R.wsh*.95),c1=P(T-2,R.wsh*.95),c2=P(T-10,0);
-    ctx.beginPath(); ctx.moveTo(c0[0],c0[1]); ctx.quadraticCurveTo(P(T+3,0)[0],P(T+3,0)[1],c1[0],c1[1]); ctx.lineTo(c2[0],c2[1]); ctx.closePath(); fillStroke(ctx,dark(col.shirt,.1),ow*.7);
     /* thin silver chain with a tiny shine */
     const k0=P(T-4,R.wsh*.8),k1=P(T*.74,R.wsh*.95),k2=P(T*.66,R.wch*.42);
     ctx.lineCap='round'; ctx.strokeStyle=INK; ctx.lineWidth=2.4; ctx.beginPath(); ctx.moveTo(k0[0],k0[1]); ctx.quadraticCurveTo(k1[0],k1[1],k2[0],k2[1]); ctx.stroke();
@@ -2464,16 +2473,18 @@ function paintGal(ctx,C,f,sk,col,ow,view){
     ctx.beginPath(); ctx.moveTo(hp.x+2,hp.y-9); ctx.lineTo(L.ex+3,L.ey+5); ctx.moveTo(L.ex-3,L.ey-4); ctx.lineTo(L.hx+2,L.hy+12); ctx.stroke();
     footPaint(ctx,C,L,col,0,ow);
   };
-  return {leg,torso:()=>{
-    const tp=[P(-4,-R.whp*1.02),P(T*.35,-R.wwa*1.04),P(T*.72,-R.wch*1.02),P(T-3,-R.wsh-6),P(T+2,0),P(T-3,R.wsh+6),P(T*.72,R.wch*1.06),P(T*.35,R.wwa*1.2),P(-4,R.whp*1.2),P(-9,0)];
+  return {leg,late:true,torso:()=>{
+    /* the linen shirt is ONE shape: the body, then the tails hanging over the top of the trousers, flaring a little, with a curved hem */
+    const wh=R.whp;
+    const tp=[P(-2,-wh*1.1),P(T*.35,-R.wwa*1.04),P(T*.72,-R.wch*1.02),P(T-3,-R.wsh-6),P(T+2,0),P(T-3,R.wsh+6),P(T*.72,R.wch*1.06),P(T*.35,R.wwa*1.2),P(-2,wh*1.3),P(-13.5,wh*1.34),P(-17,wh*.1),P(-15.5,-wh*1.12)];
     blobShaded(ctx,tp,col.shirt,ow,6.5,3,-3.5,-3);
     folds(ctx,P,[[T*.78,-R.wch*.2,T*.5,R.wch*.2,3],[T*.5,-R.wwa*.1,T*.2,R.wwa*.5,2],[T*.62,R.wch*.34,T*.3,R.wwa*.9,-2],[T*.3,-R.wwa*.5,T*.06,-R.whp*.6,-2]],'#9a8d70',1.6);
-    /* open collar: a V of skin down the chest, then the button placket */
-    const v0=P(T-1,-10.5),v1=P(T-1,10.5),v2=P(T*.5,1);
-    ctx.beginPath(); ctx.moveTo(v0[0],v0[1]); ctx.lineTo(v1[0],v1[1]); ctx.lineTo(v2[0],v2[1]); ctx.closePath(); fillStroke(ctx,col.skin2,ow*.6);
-    const b1=P(T*.04,2); ctx.strokeStyle=dark(col.shirt,.25); ctx.lineWidth=1.4; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(v2[0],v2[1]); ctx.lineTo(b1[0],b1[1]); ctx.stroke();
-    ctx.fillStyle='#8f8266'; for(let i=0;i<3;i++){ const bb=P(T*.38-i*10,2.2); ctx.beginPath(); ctx.arc(bb[0],bb[1],1.3,0,7); ctx.fill(); }
+    { const h0=P(-12.2,-wh*.95),h1=P(-10.5,wh*1.12),hm=P(-14.4,wh*.1); ctx.strokeStyle='rgba(90,76,52,.4)'; ctx.lineWidth=1.3; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(h0[0],h0[1]); ctx.quadraticCurveTo(hm[0],hm[1],h1[0],h1[1]); ctx.stroke(); }
+    /* the button placket under the open collar (the V itself is drawn by neck()) */
+    const v2=P(T-20,1), b1=P(T*.04,2); ctx.strokeStyle=dark(col.shirt,.25); ctx.lineWidth=1.4; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(v2[0],v2[1]); ctx.lineTo(b1[0],b1[1]); ctx.stroke();
+    ctx.fillStyle='#8f8266'; for(let i=0;i<3;i++){ const bb=P(T*.5-i*10,2.2); ctx.beginPath(); ctx.arc(bb[0],bb[1],1.3,0,7); ctx.fill(); }
   },
+  neck:()=>{ neckIn(ctx,C,sk,col,ow*.8,P,T,10.5,19,true); collarWings(ctx,P,T,10.5,19,lite(col.shirt,.1),ow,dark(col.shirt,.3)); },      /* the open collar of the linen shirt: a V of skin between two folded collar wings */
   arm:(A,sh,back)=>{
     const c=back?col.skin2:col.skin, sl=back?dark(col.shirt,.18):col.shirt, pts=[[sh.x,sh.y],[A.ex,A.ey],[A.hx,A.hy]], ws=[R.ra*2,R.rf*2];
     limb(ctx,pts,ws,c,ow,lite(c,.3),'arm',{open:!back});                                                                                    // the bare forearm
@@ -2488,21 +2499,12 @@ function paintGal(ctx,C,f,sk,col,ow,view){
     handPaint(ctx,C,A.hx,A.hy,c,R,!back,null,ow,fa(A));
   },
   collar:()=>{
-    /* the shirt tails hang over the top of the trousers */
-    const hem=[P(T*.42,-R.wwa*1.0),P(T*.42,R.wwa*1.2),P(-4,R.whp*1.32),P(-15,R.whp*1.2),P(-16,-R.whp*1.04),P(-5,-R.whp*1.04)];
-    const q0=P(0,-R.wch),q1=P(0,R.wch*1.3), g=ctx.createLinearGradient(q0[0],q0[1],q1[0],q1[1]);
-    g.addColorStop(0,col.shirt2); g.addColorStop(.5,col.shirt); g.addColorStop(1,lite(col.shirt,.18));
-    smooth(ctx,hem); ctx.fillStyle=g; ctx.fill(); ctx.lineWidth=ow*.9; ctx.strokeStyle=INK; ctx.lineJoin='round'; ctx.stroke();
+
     /* thin dark cord with a little gold coin */
     const k0=P(T-3,-9.5),k1=P(T*.62,0),k2=P(T-3,9.5);
     ctx.lineCap='round'; ctx.strokeStyle='rgba(20,12,30,.95)'; ctx.lineWidth=1.9; ctx.beginPath(); ctx.moveTo(k0[0],k0[1]); ctx.quadraticCurveTo(k1[0],k1[1]-2,k2[0],k2[1]); ctx.stroke();
     const pd=P(T*.66,0); ctx.fillStyle='#f0c43c'; ctx.beginPath(); ctx.arc(pd[0],pd[1]-1.5,3.1,0,7); ctx.fill(); ctx.lineWidth=1; ctx.strokeStyle=INK; ctx.stroke();
     ctx.fillStyle='rgba(255,255,255,.7)'; ctx.beginPath(); ctx.arc(pd[0]-.8,pd[1]-.6,.9,0,7); ctx.fill();
-    /* collar flaps */
-    for(const sg of [-1,1]){
-      const a=P(T-3,sg*9),b=P(T+4.5,sg*13.5),c=P(T-15,sg*17);
-      ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.lineTo(c[0],c[1]); ctx.closePath(); fillStroke(ctx,lite(col.shirt,.1),ow*.7);
-    }
   }};
 }
 const PAINTERS={daniel:paintDaniel,adir:paintAdir,liron:paintLiron,geula:paintGeula,eli:paintEli,liav:paintLiav,gal:paintGal};
@@ -2880,11 +2882,12 @@ function drawFighter(ctx,f,al,clk,Z,sx,sy){
   /* back limbs */
   pn.leg(sk.L[1],sk.hp[1],true);
   pn.arm(sk.A[1],sk.s[1],true);
-  pn.torso();
+  if(!pn.late)pn.torso();                                  /* (a painter whose shirt hangs over the trousers has late:true: its torso, tails included, is drawn over the near leg) */
   { const Ln=sk.L[0],hn=sk.hp[0];                          /* the belt / apron / hem is drawn over the top of the near leg (so the leg grows out from under it), unless the thigh is raised: then it is in front */
     if(Ln.ey-hn.y<-R.thigh*.2){ pn.leg(Ln,hn,false); if(pn.hip)pn.hip(); } else { if(pn.hip)pn.hip(); pn.leg(Ln,hn,false); } }
-  ctx.fillStyle='rgba(10,5,25,.3)'; ctx.beginPath(); ctx.ellipse(sk.nx,sk.ny-9,16,7,-sk.lean,0,7); ctx.fill();
-  paintNeck(ctx,C,sk,col,OW*.8);
+  if(pn.late)pn.torso();
+  if(pn.neck)pn.neck(); else paintNeck(ctx,C,sk,col,OW*.8);              /* the neckline (v3.4) sits between the shirt and the head: the chin overlaps it */
+  ctx.fillStyle='rgba(10,5,25,.3)'; ctx.beginPath(); ctx.ellipse(sk.nx,sk.ny-9,16,7,-sk.lean,0,7); ctx.fill();         /* the head's shadow on the collar and the shirt */
   paintHead(ctx,C,f,sk,rs,k,fc,headFor(C,f));
   pn.collar();
   /* held props behind front hand */
@@ -4293,6 +4296,7 @@ addEventListener('appinstalled',()=>{ INST=null; syncInstall(); try{ toast('הא
 
 /* ---------- version / what's new ---------- */
 const CHANGES=[
+ ['3.4',['תיקון ציור בבטן של ליאב וגל: החולצה היא עכשיו צורה אחת רציפה, בלי הקו והמלבן שנראו כמו תפר בבטן. שולי החולצה מעוגלים, עם תפר קטן, והיא יורדת על המכנסיים בצורה טבעית וגם בכריעה ובמכות','צווארונים טבעיים לכל הדמויות: המשולש החד שהיה בצוואר הוחלף בצווארון רך שיושב מאחורי הראש. בלירון וליאב יש עכשיו צווארון סרוג מעוגל, בדניאל, אדיר, אלי וגל צווארון קטן עם כנפיים מעוגלות, ובגאולה צווארון עגול. הצוואר עצמו מצויר מתחת לצווארון ולא נראים בו קווים']],
  ['3.3',['לירון: אופי חדש – השליח המהמר. עכשיו הוא לבוש כמו שוער כדורגל: חולצה כחולה ארוכה עם סמל קובייה, מכנסיים שחורים, גרביים עד הברך, נעלי קטרגל עם פס ירוק בוהק וכפפות שוער גדולות. המכות והנתונים שלו לא השתנו','אנימציית הגנה: כשלוחצים על כפתור ההגנה (🛡️) הדמות מרימה את הידיים קדימה ליד הפנים, כמו בהגנה אמיתית, ואם היא חוטפת מכה בזמן ההגנה הידיים נשארות למעלה וזזות קצת מההדף. זה עובד לכל הדמויות, גם בהליכה ובכריעה וגם באונליין','אייפון ומכשירים חזקים אחרים: לחיצה קצרה על קפיצה, הגנה, כריעה והחיצים כבר לא הולכת לאיבוד כשהמסך נתקע לרגע (הלחיצה נשמרת עד שהמשחק מספיק לראות אותה). הכפתורים הורחקו מקצוות המסך, שם האייפון תופס החלקות של המערכת ומאחר את הנגיעה, ובין כפתורי ההתקפה יש רווח גדול יותר. בנוסף המשחק זוכר איזו רמת גרפיקה המכשיר החזיק בפעם הקודמת, ובטלפונים הרקע של הזירה מצויר מההתחלה ב־70% מהרזולוציה (בלי הבדל לעין) כדי שלא יהיו תקיעות בתחילת הקרב','אונליין: אחרי משחק חוזר גם האורח יכול לשחק כרגיל. בעבר המארח התעלם מכמה מהלחיצות הראשונות שלו במשחק השני, וזה נראה כמו תקיעה']],
  ['3.2',['דמות שביעית: גל כחלון, איש העסקים שאוהב כסף יותר מכל דבר. שלוש מכות: חבילות כסף שנזרקות על היריב (4% לחבילה), גשם נעלי ספורט שנופל מהשמיים (5% לנעל, והצללים על הרצפה מראים איפה כל נעל תנחת) ותפילין: רצועה שתופסת את היריב מרחוק, מושכת אותו אליו ומורידה לו 20% מהחיים','לירון: שתי מכות חדשות במקום זריקת הג׳ודו ותגובת הנגד. חמישה טפסי טוטו שנזרקים בזה אחר זה (10% לכל טופס, חצי מהחיים אם כולם פוגעים, והטעינה איטית), וסמל מכבי נתניה שאם פוגע הופך את היריב על הראש ל־2 שניות. מי שהפוך לא יכול להתקיף או להגן, רק ללכת. אופנוע המשלוחים נשאר כמו שהיה','אונליין: בסוף משחק הכפתור ״משחק חוזר״ מחזיר את שני השחקנים ללובי עם אותן דמויות, ואפשר ללחוץ עליו גם כאורח. ככה מתחילים משחק מהיר בלי לפתוח לובי מחדש ובלי לצאת לתפריט הראשי','ציור חדש לידיים ולרגליים של כל הדמויות: גפיים מחוברות לגוף במקום מקלות, עם שרירים, כתפיים, מרפקים וברכיים, שרוולים ומכנסיים שעוטפים אותן, אגרופים ונעליים מפורטות (סוליות, שרוכים, מגפיים וכפות רגליים יחפות)']],
  ['3.1',['גרפיקה חדשה לדמויות בסגנון משחקי המכות הקלאסיים: קווי מתאר עבים, צללים וגוונים כמו בקומיקס, פרופורציות גבוריות וצל חזק על הרצפה','הפנים של החברים צוירו מחדש באותו סגנון והדמיון נשמר','HUD חדש: פס חיים רחב עם שובל נזק, תמונת פנים, שם ותפקיד, יהלומי ניצחונות, שלוש מכות מיוחדות עם טעינה, טיימר עגול והודעות ברורות על מצבים (מושתק, מעולף, לכוד, מואט, חלש)','באנרים חדשים בתחילת קרב, בנוקאאוט ובניצחון','כל טקסטי ה־HUD בגופן מגדל העמק של אלעד מזרחי (רישיון SIL OFL)']],
