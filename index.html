@@ -217,12 +217,14 @@ a.btn{text-decoration:none}
 .kbtn.on{border-color:var(--ac);background:#3a2f00;animation:bl 1s infinite}
 .pp button.sw{padding:6px 12px;border-radius:10px;background:#ffffff18;font-size:13px;font-weight:700}
 /* ---------- in game ---------- */
-#tc{position:absolute;left:0;right:0;bottom:0;pointer-events:none;direction:ltr;display:none;height:calc(var(--s)*3.6 + env(safe-area-inset-bottom,0px))}
+/* the controls keep clear of the screen edges: an iPhone claims a swipe from the left or right edge (back / forward) and from the bottom (home), and treats a touch that starts in
+   the last ~20 px as the start of such a gesture: it arrives late or is cancelled. --eb is the distance of every control from the bottom, --es from the sides. */
+#tc{--eb:max(26px,calc(10px + env(safe-area-inset-bottom,0px)));--es:max(22px,calc(8px + env(safe-area-inset-left,0px)));--er:max(22px,calc(8px + env(safe-area-inset-right,0px)));position:absolute;left:0;right:0;bottom:0;pointer-events:none;direction:ltr;display:none;height:calc(var(--s)*3.7 + var(--eb))}
 #tc.on{display:block}
 #tc .g{position:absolute;pointer-events:auto;touch-action:none}
-#dp{left:max(10px,env(safe-area-inset-left,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));width:calc(var(--s)*3.05);height:calc(var(--s)*3.05)}
-#ac{right:max(10px,env(safe-area-inset-right,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));width:calc(var(--s)*2.25);height:calc(var(--s)*2.25)}
-#sp{right:max(10px,env(safe-area-inset-right,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px) + var(--s)*2.38);width:calc(var(--s)*2.6);height:calc(var(--s)*.95);display:flex;flex-direction:row-reverse;gap:calc(var(--s)*.1);justify-content:flex-start;align-items:center}
+#dp{left:var(--es);bottom:var(--eb);width:calc(var(--s)*3.05);height:calc(var(--s)*3.05)}
+#ac{right:var(--er);bottom:var(--eb);width:calc(var(--s)*2.4);height:calc(var(--s)*2.4)}
+#sp{right:var(--er);bottom:calc(var(--eb) + var(--s)*2.56);width:calc(var(--s)*2.6);height:calc(var(--s)*.95);display:flex;flex-direction:row-reverse;gap:calc(var(--s)*.1);justify-content:flex-start;align-items:center}
 .tb{position:absolute;width:var(--s);height:var(--s);border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffffff44,#ffffff14 60%);border:2.5px solid #ffffff66;display:grid;place-items:center;font:900 calc(var(--s)*.3)/1 Heebo;color:#fff;text-shadow:0 2px 3px #000a;box-shadow:0 4px 12px #0006;touch-action:none}
 /* the touch controls hold no text at all: arrows are drawn with clip-path and the labels come from generated content, so the phone has nothing to select (no magnifier loupe, no cut / copy menu) */
 #dp .tb::before{content:"";display:block;width:44%;height:44%;background:currentColor;filter:drop-shadow(0 2px 2px #000a)}
@@ -438,7 +440,7 @@ const store={
   set(k,v){try{localStorage.setItem('nf.'+k,JSON.stringify(v))}catch(e){}}
 };
 
-const VERSION='3.2';                 /* bump on every published change; shown in the game as "v.2.5" */
+const VERSION='3.3';                 /* bump on every published change; shown in the game as "v.2.5" */
 /* the HUD typeface: "Migdal HaEmek" (a very heavy, blocky Hebrew face by Elad Mizrahi, SIL Open Font License), embedded in the page as a data: font when its file sits in
    assets/fonts (build.py does that). It has Hebrew letters only, so digits and Latin letters come from Heebo (its 900 weight is the same blocky class); Secular One is the last
    resort. UIFONT_ON is set once the browser has really loaded the face (uiFontsReady); until then, or when it is not embedded, the HUD keeps the v3.0 type (Secular One, 400). */
@@ -607,8 +609,8 @@ const PZ={
  /* helpless */
  para:   pz(.0,   .02,   0,100, 12,108, -10,106, 14,0,-14,0),
  /* reactions */
- block:  pz(.02,  .06, -2, 98, 38,172, 26,164, 14,0,-16,0),
- cblock: pz(.30,  .06, -4, 58, 40,120, 28,112, 30,0,-14,0),
+ block:  pz(-.04, .10, -4, 94, 56,172, 42,162, 22,0,-20,0),
+ cblock: pz(.30,  .08, -2, 58, 60,130, 46,122, 30,0,-14,0),
  crouch: pz(.30, -.06, -4, 56, 44,108, 26,100, 30,0,-14,0),
  hit1:   pz(-.32,-.30,-10, 98, 4,142, -26,134, 14,0,-20,0),
  hit2:   pz(-.40,-.22,-14, 96, -6,170, -30,120, 10,0,-22,0),
@@ -691,12 +693,12 @@ const CHARS=[
   ],
   combos:[['LP','LP','RP','RK','קומבו קלאסי שמסתיים בהפלה'],['↓+RP','צרור','מרים את היריב וגומר אותו בירי'],['מכת קת','LK','RK','פותח את השמירה ומכניס שרשרת']]
 },
-{ id:'liron', first:'לירון', name:'לירון מכלוף', role:'הג׳ודוקא', ico:'🥋', col:'#5ea8ff', col2:'#12346b',
-  bio:'לוחם בסיסי ויציב בסגנון ג׳ודו: דחיפות, מכות כתף וסחיפות. קשה להפיל אותו. אוהד מושבע של מכבי נתניה ששולח עליך טפסי טוטו ומעיף את סמל הקבוצה בפרצוף, ואם הוא צריך לסיים, הוא מזמין משלוח.',
+{ id:'liron', first:'לירון', name:'לירון מכלוף', role:'השליח המהמר', ico:'🎲', col:'#5ea8ff', col2:'#12346b',
+  bio:'שליח משלוחים שמהמר על הכול, מהטוטו ועד הקרב הזה. מגיע בבגדי שוער כדורגל ובכפפות שוער, ולכן הוא יציב וקשה להפיל, עם מכות קצרות וחזקות. אוהד מושבע של מכבי נתניה ששולח עליך טפסי טוטו ומעיף את סמל הקבוצה בפרצוף, ואם הוא צריך לסיים, הוא מזמין משלוח.',
   stats:{'כוח':4,'מהירות':3,'טווח':2,'הגנה':5}, walk:3.6, back:3.2, jumpV:16.6, jf:4.8, dm:1.08, df:.86,
   head:'liron', headH:80, headW:68,
-  look:{skin:'#d3a082',skin2:'#a8745a',shirt:'#17171b',shirt2:'#0c0c0f',pants:'#ecebe8',shoe:'#f4f4f2',kind:'judo'},
-  tweak:{LP:{hb:[22,106,156,198],hs:15,nm:'דחיפה'},RP:{hb:[22,120,112,184],kb:12,hs:22,nm:'מכת כתף'},RK:{nm:'סחיפת ג׳ודו',r:21},cRK:{r:22,nm:'גריפת רגליים'}},
+  look:{skin:'#d3a082',skin2:'#a8745a',shirt:'#2b66ea',shirt2:'#1a3f9e',pants:'#17181f',shoe:'#17171d',kind:'keeper'},
+  tweak:{LP:{hb:[22,106,156,198],hs:15,nm:'אגרוף כפפה'},RP:{hb:[22,120,112,184],kb:12,hs:22,nm:'מכת שוער'},RK:{nm:'בעיטת שוער',r:21},cRK:{r:22,nm:'גלישה'}},
   sp:[
    {k:'l1',nm:'טפסי טוטו',ic:'🎟️',kind:'proj',s:16,a:26,r:20,cd:780,dmgTxt:'10% לטופס',btn:'S1',
     desc:'זורק על היריב חמישה טפסי טוטו בזה אחר זה, בגבהים שונים. כל טופס שפוגע מוריד 10% מהחיים, ואם כולם פוגעים זה חצי מהחיים. אפשר לחסום, והטפסים הגבוהים עוברים מעל מי שמתכופף. מכה חזקה אבל נטענת לאט.',
@@ -1678,8 +1680,19 @@ function animPose(f,C,al,clk){
   const idleP=()=>{ const q=blend(ID,ID,0,PB[1]); q[3]+=br*1.6; q[5]+=br*1.6; q[7]+=br*1.3; q[4]+=br*.7; return q; };
   /* the snore: both hands over the ears (the legs keep doing whatever they were doing) */
   const ears=(q)=>{ if(f.slw>0){ const E=PZ.ears, sh=Math.sin(tt*.8)*1.4; q[0]=lerp(q[0],E[0],.8); q[1]=lerp(q[1],E[1],.8); for(let i=4;i<8;i++)q[i]=lerp(q[i],E[i],.92); q[5]+=sh; q[7]-=sh; } return q; };
+  /* the guard: while the block button is held (or the fighter backs away, which the game blocks as well) both hands come up in front of the face and the stance
+     sinks a little behind them; up in about 4 ticks, down in about 6. A hit that is blocked starts from this pose, so nothing jumps. The state is kept here, in the
+     drawing (the snapshot of an online match carries f.guard and the state, which is all it takes). */
+  { const gt=(f.guard&&(st==='idle'||st==='walk'||st==='crouch'))||st==='block'||st==='cblock'?1:0;
+    const d=clamp(clk-(rs.gc===undefined?clk:rs.gc),0,8); rs.gc=clk; const g=rs.gd||0;
+    rs.gd=(st==='block'||st==='cblock')?1:gt>g?Math.min(1,g+d/4):gt<g?Math.max(0,g-d/6):g; }      /* (equal: stay, or the hands would fall and rise again on every other frame) */
+  const guardUp=(q,crouch)=>{
+    const x=rs.gd||0; if(x<.003)return q; const k=x*x*(3-2*x), B=crouch?PZ.cblock:PZ.block;
+    q[0]=lerp(q[0],B[0],k); q[1]=lerp(q[1],B[1],k); q[2]+=B[2]*k; if(!crouch&&!rs.noSink)q[3]+=(B[3]-100)*k;
+    for(let i=4;i<8;i++)q[i]=lerp(q[i],B[i],k);
+    return q; };
   switch(st){
-   case 'idle': return ears(idleP());
+   case 'idle': return ears(guardUp(idleP(),false));
    case 'walk':{
      const q=blend(ID,ID,0,PB[1]);
      const ph=rs.wph; const c1=Math.sin(ph), c2=Math.sin(ph+Math.PI);
@@ -1687,8 +1700,8 @@ function animPose(f,C,al,clk){
      q[10]=ID[10]+c2*34; q[11]=Math.max(0,Math.cos(ph+Math.PI))*18;
      q[3]=ID[3]-Math.abs(Math.cos(ph))*3.5+1.5; q[0]+=.03;
      q[5]+=Math.cos(ph*2)*1.8; q[7]+=Math.cos(ph*2+1)*1.8;
-     return ears(q); }
-   case 'crouch':{ const q=blend(PZ.crouch,PZ.crouch,0,PB[1]); q[3]+=br*1.2; return ears(q); }
+     return ears(guardUp(q,false)); }
+   case 'crouch':{ const q=blend(PZ.crouch,PZ.crouch,0,PB[1]); q[3]+=br*1.2; return ears(guardUp(q,true)); }
    case 'jump':{
      const rise=f.y>f.py?1:0; const k=clamp(Math.abs(f.y-f.py)/6,0,1);
      const P1=PZ.jump,P2=PZ.fall; const q=blend(rise?P1:P2,rise?P2:P1,(1-k)*.5,PB[1]); return q; }
@@ -1706,8 +1719,8 @@ function animPose(f,C,al,clk){
      const p=blend(ID,q,k,PB[2]);
      if(!fwd){ const hop=Math.sin(u*Math.PI)*9*k; p[3]+=hop; p[9]+=hop; p[11]+=hop; }
      return p; }
-   case 'block': return blend(PZ.block,PZ.block,0,PB[1]);
-   case 'cblock': return blend(PZ.cblock,PZ.cblock,0,PB[1]);
+   case 'block':{ const q=guardUp(blend(ID,ID,0,PB[1]),false), u=clamp(tt/9,0,1), r=1-u; q[2]-=r*4; q[0]-=r*.05; q[5]-=r*5; q[7]-=r*5; return q; }       /* the guard, shoved back by the blow */
+   case 'cblock':{ const q=guardUp(blend(PZ.crouch,PZ.crouch,0,PB[1]),true), u=clamp(tt/9,0,1), r=1-u; q[2]-=r*4; q[5]-=r*4; q[7]-=r*4; return q; }
    case 'hit':{ const u=tt/(tt+Math.max(0,f.stun)); const base=(f.taken&1)?PZ.hit2:PZ.hit1;
      return blend(base,ID,clamp((u-.35)/.65,0,1)*.9,PB[1]); }
    case 'chit':{ const u=tt/(tt+Math.max(0,f.stun)); return blend(PZ.chit,PZ.crouch,clamp((u-.35)/.65,0,1),PB[1]); }
@@ -1978,7 +1991,7 @@ function bar(ctx,x0,y0,x1,y1,w,fill,ow){
 /* ---------- per-character torso/limb styling ---------- */
 function bodyCols(C,k){ // k = flash 0..1 -> mix to white
   const L=C.look, f=k>0?(c=>mix(c,'#ffffff',k)):(c=>c);
-  return {skin:f(L.skin),skin2:f(L.skin2),shirt:f(L.shirt),shirt2:f(L.shirt2),pants:f(L.pants),pants2:f(dark(L.pants,L.kind==='judo'?.13:.28)),shoe:f(L.shoe),
+  return {skin:f(L.skin),skin2:f(L.skin2),shirt:f(L.shirt),shirt2:f(L.shirt2),pants:f(L.pants),pants2:f(dark(L.pants,.28)),shoe:f(L.shoe),
           shoe2:f(dark(L.shoe,.3))};
 }
 function torsoPts(R,sk,k){ // control polygon, char space (rear → front)
@@ -1993,7 +2006,7 @@ function drawLimbSkin(ctx,A,Rr1,Rr2,col,hi,ow){ limb(ctx,[[A.sx,A.sy],[A.ex,A.ey
 /* a clenched fist seen from the side, drawn in the forearm's frame (x = the way the forearm points): the back of the hand rises to the knuckles, the curled fingers
    make the front, the thumb lies across them. Shaded like the torso: one clip, a cel crescent away from the light and a lit rim. */
 const FIST=[[-.98,.46],[-.52,.7],[.1,.86],[.62,.84],[1.04,.58],[1.14,.1],[1.06,-.4],[.68,-.78],[.1,-.88],[-.5,-.7],[-.98,-.46]],_FP=FIST.map(()=>[0,0]);
-function handPaint(ctx,C,x,y,col,R,front,glove,ow,ang){
+function handPaint(ctx,C,x,y,col,R,front,glove,ow,ang,gk){
   const r=R.fist*.98,base=glove||col,A=ang||0,ca=Math.cos(A),sa=Math.sin(A);
   ctx.save(); ctx.translate(x,y); ctx.rotate(A);
   for(let i=0;i<FIST.length;i++){ _FP[i][0]=FIST[i][0]*r; _FP[i][1]=FIST[i][1]*r; }
@@ -2009,6 +2022,11 @@ function handPaint(ctx,C,x,y,col,R,front,glove,ow,ang){
   ctx.strokeStyle=INK; ctx.lineWidth=r*.48+ow*.62; ctx.beginPath(); ctx.moveTo(-.3*r,-.5*r); ctx.quadraticCurveTo(.3*r,-.66*r,.8*r,-.2*r); ctx.stroke();
   ctx.strokeStyle=base; ctx.lineWidth=r*.48; ctx.stroke();
   if(GFXQ){ ctx.strokeStyle=shadeOf(base); ctx.lineWidth=r*.16; ctx.beginPath(); ctx.moveTo(-.14*r,-.68*r); ctx.quadraticCurveTo(.34*r,-.8*r,.74*r,-.4*r); ctx.stroke(); }
+  if(gk){      /* goalkeeper glove: a seam along the back of the hand and a wide wrist strap with a coloured band */
+    ctx.strokeStyle=shadeOf(base); ctx.lineWidth=r*.13; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(-.5*r,.56*r); ctx.quadraticCurveTo(.1*r,.84*r,.78*r,.64*r); ctx.stroke();
+    rrect(ctx,-1.36*r,-.7*r,.64*r,1.42*r,r*.14); ctx.fillStyle=front?'#f6f8ff':'#c4cce2'; ctx.fill(); ctx.lineWidth=ow*.8; ctx.strokeStyle=INK; ctx.lineJoin='round'; ctx.stroke();
+    ctx.fillStyle=front?'#2b66ea':'#1a3f9e'; ctx.fillRect(-1.16*r,-.66*r,.24*r,1.34*r);
+  }
   ctx.restore();
 }
 
@@ -2042,19 +2060,14 @@ function footPaint(ctx,C,L,col,k,ow){
   ctx.save(); ctx.translate(L.hx,L.hy); ctx.rotate(ang);
   ctx.scale(1,-1);     /* the shoes below are drawn y-down (sole at +y), the character space is y-up: flip them so the sole is underneath */
   ctx.lineJoin='round';
-  if(kind==='judo'){ // bare foot: heel, raised arch, the ball of the foot, a big toe and the smaller ones behind it
-    const sk=col.skin;
-    ctx.beginPath(); ctx.moveTo(-9.4,7.9); ctx.quadraticCurveTo(-12.4,6,-11.8,.4); ctx.quadraticCurveTo(-11.4,-4,-9.8,-8.4); ctx.lineTo(-1,-9.4); ctx.quadraticCurveTo(5,-8.8,10,-7);
-    ctx.quadraticCurveTo(16,-5.8,22,-4.6); ctx.quadraticCurveTo(28.6,-3.8,28.4,.4); ctx.quadraticCurveTo(28.2,4.2,23,4.6); ctx.quadraticCurveTo(20,5.2,17.8,7.9);
-    ctx.lineTo(10,7.9); ctx.quadraticCurveTo(5,7.9,2,5.4); ctx.quadraticCurveTo(-2,7.9,-5.4,7.9); ctx.closePath();
-    ctx.fillStyle=sk; ctx.fill();
-    ctx.save(); ctx.clip(); ctx.fillStyle=shadeOf(sk); ctx.beginPath(); ctx.moveTo(-14,3.2); ctx.quadraticCurveTo(-4,1.6,4,3.6); ctx.quadraticCurveTo(12,2.4,20,2.8); ctx.lineTo(32,1.6); ctx.lineTo(32,12); ctx.lineTo(-14,12); ctx.closePath(); ctx.fill(); ctx.restore();
-    ctx.fillStyle=glowOf(sk); ctx.globalAlpha=.4; ctx.beginPath(); ctx.ellipse(7,-6.6,7.4,1.4,-.14,0,7); ctx.fill(); ctx.globalAlpha=1;
-    ctx.strokeStyle=INK; ctx.lineCap='round'; ctx.lineWidth=ow*.42; ctx.beginPath(); ctx.moveTo(17.6,-5.2); ctx.lineTo(18.2,-1.8); ctx.moveTo(20.8,-4.8); ctx.lineTo(21.2,-1.6); ctx.moveTo(23.8,-4.4); ctx.lineTo(24,-1.4); ctx.stroke();
-    ctx.fillStyle='rgba(255,255,255,.55)'; ctx.beginPath(); ctx.ellipse(26.4,-2.5,1.7,1.1,.3,0,7); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(-9.4,7.9); ctx.quadraticCurveTo(-12.4,6,-11.8,.4); ctx.quadraticCurveTo(-11.4,-4,-9.8,-8.4); ctx.lineTo(-1,-9.4); ctx.quadraticCurveTo(5,-8.8,10,-7);
-    ctx.quadraticCurveTo(16,-5.8,22,-4.6); ctx.quadraticCurveTo(28.6,-3.8,28.4,.4); ctx.quadraticCurveTo(28.2,4.2,23,4.6); ctx.quadraticCurveTo(20,5.2,17.8,7.9);
-    ctx.lineTo(10,7.9); ctx.quadraticCurveTo(5,7.9,2,5.4); ctx.quadraticCurveTo(-2,7.9,-5.4,7.9); ctx.closePath(); ctx.lineWidth=ow*1.05; ctx.stroke();
+  if(kind==='keeper'){ // football boot: low collar, studded outsole, a lime flash across the side and white laces
+    shoeSole(ctx,'#2c2d38',ow,28.4,true); shoeUpper(ctx,col.shoe,ow,10.2,28.4);
+    ctx.strokeStyle='#c6ee3b'; ctx.lineWidth=2.4; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(-8,1.8); ctx.quadraticCurveTo(1,-1.6,10.6,-5); ctx.stroke();      /* the flash */
+    shoeLaces(ctx,10.2,'#eef2ff',3);
+    ctx.strokeStyle='rgba(20,10,40,.35)'; ctx.lineWidth=.9; ctx.beginPath(); ctx.moveTo(17.8,-4.9); ctx.quadraticCurveTo(16.2,-.4,17.2,3.4); ctx.stroke();      /* toe-cap seam */
+    ctx.fillStyle='rgba(255,255,255,.3)'; ctx.beginPath(); ctx.ellipse(22.4,-1.8,5.6,1.8,.08,0,7); ctx.fill();
+    ctx.fillStyle='#15161d'; ctx.strokeStyle=INK; ctx.lineWidth=.9;
+    for(const sx of [-8.6,-2.4,10.2,17,23.6]){ rrect(ctx,sx-1.7,8,3.4,2.5,.8); ctx.fill(); ctx.stroke(); }      /* the studs */
   }else if(kind==='soldier'){ // lace-up combat boot: tall shaft, black rubber sole with a heel block
     shoeSole(ctx,'#1d1d19',ow,27,true); shoeUpper(ctx,col.shoe,ow,15.4,27);
     ctx.strokeStyle=lite(col.shoe,.3); ctx.lineWidth=1.3; ctx.lineCap='round'; ctx.beginPath(); for(let i=0;i<3;i++){ ctx.moveTo(-8,-12+i*4.4); ctx.lineTo(1.4,-12.8+i*4.4); } ctx.stroke();
@@ -2240,42 +2253,56 @@ function paintAdir(ctx,C,f,sk,col,ow,view){
   }};
 }
 
-/* --- Liron: judoka (black gi jacket w/ lapels + belt, white trousers, bare feet) --- */
+/* --- Liron: the gambling courier in a goalkeeper kit (long-sleeve blue jersey with a dice badge, black shorts and knee socks, football boots, big lime goalkeeper gloves) --- */
+const _KA=[0,0],_KB=[0,0];
 function paintLiron(ctx,C,f,sk,col,ow,view){
-  const R=C.rig, lean=sk.lean,sa=Math.sin(lean),ca=Math.cos(lean);
+  const R=C.rig, lean=sk.lean,sa=Math.sin(lean),ca=Math.cos(lean), T=R.torso;
   const P=(u,v)=>[sk.hx+sa*u+ca*v, sk.hy+ca*u-sa*v];
+  const Rg=C.rigG||(C.rigG=Object.assign({},R,{fist:R.fist*1.2}));      /* the big goalkeeper glove */
   const leg=(L,hp,back)=>{
-    const c=back?col.pants2:col.pants;
-    limb(ctx,[[hp.x,hp.y],[L.ex,L.ey],[L.hx,L.hy+4]],[R.rt*2,R.rs*2],c,ow,'#ffffff','leg',{open:!back,sw:.3,ease:1.6,flare:2});
-    // gi trouser crease
-    ctx.strokeStyle='rgba(0,0,0,.10)'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.moveTo(hp.x+3,hp.y-6); ctx.lineTo(L.ex+2,L.ey); ctx.lineTo(L.hx+2,L.hy+6); ctx.stroke();
+    const c=back?col.skin2:col.skin, sh=back?col.pants2:col.pants, so=back?'#101118':'#1b1c25', pts=[[hp.x,hp.y],[L.ex,L.ey],[L.hx,L.hy+3]], ws=[R.rt*2,R.rs*2];
+    limb(ctx,pts,ws,c,ow,lite(c,.3),'leg',{open:!back,sw:.8});                                                                              // the bare thigh and knee
+    limb(ctx,pts,ws,so,ow,'#565a70','leg',{t0:1.1,t1:2,sw:.8,ease:.4,flat0:true});                                                         // the knee sock
+    limb(ctx,pts,ws,back?'#18399a':'#2b66ea',ow,'#8fb4ff','leg',{t0:1.1,t1:1.34,sw:.8,ease:.55,flat0:true,flat:true});                      // the blue band round the top of the sock
+    limb(ctx,pts,ws,sh,ow,lite(sh,.3),'leg',{open:!back,t1:.62,sw:.45,ease:1.15,flare:1.9,flat:true,hem:back?'#aeb6cc':'#eef2ff',hemW:3});  // the loose shorts
+    if(!back){                                                                                                                              /* the white stripe down the side of the shorts */
+      limbAt(.16,.1,_KA); limbAt(.52,.1,_KB);
+      ctx.strokeStyle='#eef2ff'; ctx.lineWidth=2.2; ctx.lineCap='butt'; ctx.beginPath(); ctx.moveTo(_KA[0],_KA[1]); ctx.lineTo(_KB[0],_KB[1]); ctx.stroke(); ctx.lineCap='round';
+    }
     footPaint(ctx,C,L,col,0,ow);
   };
   return {leg,torso:()=>{
     const tp=torsoPts(R,sk);
     blobShaded(ctx,tp,col.shirt,ow,6.5,3,-3.5,-3);
-    folds(ctx,P,[[R.torso*.74,-R.wch*.2,R.torso*.46,R.wch*.28,3],[R.torso*.4,-R.wwa*.3,R.torso*.16,R.wwa*.4,2]],'#3a3a48',1.4);
-    // lapel V (white undershirt + crossed jacket edges)
-    const v0=P(R.torso-3,-8),v1=P(R.torso-3,9),v2=P(R.torso*.5,2);
-    ctx.beginPath(); ctx.moveTo(v0[0],v0[1]); ctx.lineTo(v1[0],v1[1]); ctx.lineTo(v2[0],v2[1]); ctx.closePath(); fillStroke(ctx,'#e9e9ee',ow*.6);
-    ctx.strokeStyle='#4a4a56'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(v0[0],v0[1]); ctx.lineTo(P(R.torso*.18,R.wwa*.5)[0],P(R.torso*.18,R.wwa*.5)[1]); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(v1[0],v1[1]); ctx.lineTo(P(R.torso*.18,-R.wwa*.5)[0],P(R.torso*.18,-R.wwa*.5)[1]); ctx.stroke();
+    /* a lighter sash across the chest, cut to the shape of the jersey (see-through, so the shading still shows) */
+    ctx.save(); smooth(ctx,tp); ctx.clip();
+    { const a=P(T*1.05,R.wch*1.1), b=P(T*.12,-R.wwa*1.1), a2=P(T*1.05-11,R.wch*1.1+3), b2=P(T*.12-11,-R.wwa*1.1+3);
+      ctx.lineCap='butt'; ctx.globalAlpha=.5; ctx.strokeStyle='#9cc0ff'; ctx.lineWidth=8; ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+      ctx.globalAlpha=.75; ctx.strokeStyle='#f1f5ff'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(a2[0],a2[1]); ctx.lineTo(b2[0],b2[1]); ctx.stroke(); ctx.globalAlpha=1; ctx.lineCap='round'; }
+    ctx.restore();
+    folds(ctx,P,[[T*.78,-R.wch*.1,T*.5,R.wch*.3,3],[T*.36,-R.wwa*.2,T*.16,R.wwa*.5,2]],dark(col.shirt,.4),1.5);
+    /* the dice badge (a pair of lucky fives, the gambler's sponsor) */
+    const dp=P(T*.5,R.wch*.34); ctx.save(); ctx.translate(dp[0],dp[1]); ctx.rotate(-lean-.16);
+    rrect(ctx,-6.6,-6.6,13.2,13.2,2.8); ctx.fillStyle='#f7f9ff'; ctx.fill(); ctx.lineWidth=1.2; ctx.strokeStyle=INK; ctx.lineJoin='round'; ctx.stroke();
+    ctx.fillStyle='#16182a'; for(const q of [-3.2,3.2]) for(const w of [-3.2,3.2]){ ctx.beginPath(); ctx.arc(q,w,1.35,0,7); ctx.fill(); }
+    ctx.beginPath(); ctx.arc(0,0,1.35,0,7); ctx.fill();
+    ctx.restore();
   },
   hip:()=>{
-    // belt + knot tails
-    const b0=P(R.torso*.07,-R.whp*1.05),b1=P(R.torso*.07,R.whp*1.1); bar(ctx,b0[0],b0[1],b1[0],b1[1],3.6,'#0a0a0d',ow*.8);
-    const kn=P(R.torso*.07,R.whp*.35); ctx.fillStyle='#0a0a0d'; ctx.beginPath(); ctx.arc(kn[0],kn[1],4.2,0,7); ctx.fill(); ctx.lineWidth=1.2; ctx.strokeStyle=INK; ctx.stroke();
-    for(const sg of [-1,1]){ const t0=P(R.torso*.04,R.whp*.35),t1=P(-R.torso*.2,R.whp*.35+sg*8); bar(ctx,t0[0],t0[1],t1[0],t1[1],2.2,'#0a0a0d',ow*.7); ctx.strokeStyle='#d8b34a'; ctx.lineWidth=1.6; ctx.beginPath(); ctx.moveTo(t1[0]-2,t1[1]); ctx.lineTo(t1[0]+2,t1[1]); ctx.stroke(); }
+    /* the elastic waistband of the shorts and its white drawcord */
+    const b0=P(-1,-R.whp*1.06),b1=P(-1,R.whp*1.1); bar(ctx,b0[0],b0[1],b1[0],b1[1],3.4,'#101118',ow*.7);
+    const c0=P(-1,R.whp*.46); ctx.lineCap='round';
+    for(const [u,v] of [[-11,R.whp*.7],[-9,R.whp*.28]]){ const e=P(u,v); ctx.strokeStyle=INK; ctx.lineWidth=3.2; ctx.beginPath(); ctx.moveTo(c0[0],c0[1]); ctx.lineTo(e[0],e[1]); ctx.stroke(); ctx.strokeStyle='#eef2ff'; ctx.lineWidth=1.6; ctx.stroke(); }
   },
   arm:(A,sh,back)=>{
-    const c=back?col.skin2:col.skin, sl=back?'#0c0c0f':col.shirt, pts=[[sh.x,sh.y],[A.ex,A.ey],[A.hx,A.hy]], ws=[R.ra*2,R.rf*2];
-    limb(ctx,pts,ws,c,ow,lite(c,.3),'arm',{open:!back});                                                      // the bare forearm
-    limb(ctx,pts,ws,sl,ow,'#6a6a78','arm',{open:!back,t1:1.5,sw:.4,ease:1.6,flare:4.4,flat:true,hem:'#2c2c36',hemW:3.4});      // the wide 3/4 gi sleeve
-    handPaint(ctx,C,A.hx,A.hy,c,R,!back,null,ow,fa(A));
+    const sl=back?col.shirt2:col.shirt, pts=[[sh.x,sh.y],[A.ex,A.ey],[A.hx,A.hy]], ws=[R.ra*2.05,R.rf*2];
+    limb(ctx,pts,ws,sl,ow,lite(col.shirt,.28),'arm',{open:!back,t1:1.8,sw:.5,ease:1.3,flare:.7,flat:true,hem:back?'#aeb6cc':'#eef2ff',hemW:3});      // the long jersey sleeve down to the glove
+    handPaint(ctx,C,A.hx,A.hy,col.skin,Rg,!back,back?'#97b52a':'#c6ee3b',ow,fa(A),1);
   },
   collar:()=>{
-    const c0=P(R.torso-2,-11),c1=P(R.torso-2,11),c2=P(R.torso-12,0);
-    ctx.beginPath(); ctx.moveTo(c0[0],c0[1]); ctx.quadraticCurveTo(P(R.torso+2,0)[0],P(R.torso+2,0)[1],c1[0],c1[1]); ctx.lineTo(c2[0],c2[1]); ctx.closePath(); fillStroke(ctx,'#2a2a33',ow*.7);
+    /* ribbed white crew neck */
+    const c0=P(T-2,-R.wsh*.95),c1=P(T-2,R.wsh*.95),c2=P(T-10,0);
+    ctx.beginPath(); ctx.moveTo(c0[0],c0[1]); ctx.quadraticCurveTo(P(T+3,0)[0],P(T+3,0)[1],c1[0],c1[1]); ctx.lineTo(c2[0],c2[1]); ctx.closePath(); fillStroke(ctx,'#eef2ff',ow*.7);
   }};
 }
 
@@ -4196,7 +4223,7 @@ function updateSpecials(f){
 
 /* ---------- game start / end ---------- */
 function startGame(cfg){
-  blurInputs(); tapReset(); PF.n=0; PF.ri=0; PF.badN=0; PF.warm=12; PF.evalIn=48; PF.drawAt=0;      /* the first frames of a match (code warming up) must not look like a slow device */
+  blurInputs(); tapReset(); holdReset(); PF.n=0; PF.ri=0; PF.badN=0; PF.warm=12; PF.evalIn=48; PF.drawAt=0;      /* the first frames of a match (code warming up) must not look like a slow device */
   UI.cfg=cfg; UI.overShown=false; UI.paused=false; $('#ov-over').classList.remove('on'); $('#ov-pause').classList.remove('on');
   UI.stage=cfg.stage!==undefined?cfg.stage:SET.stage; if(UI.stage===6&&!CUSTOM_BG)UI.stage=0;
   cfg.names=cfg.names||['',''];
@@ -4266,6 +4293,7 @@ addEventListener('appinstalled',()=>{ INST=null; syncInstall(); try{ toast('הא
 
 /* ---------- version / what's new ---------- */
 const CHANGES=[
+ ['3.3',['לירון: אופי חדש – השליח המהמר. עכשיו הוא לבוש כמו שוער כדורגל: חולצה כחולה ארוכה עם סמל קובייה, מכנסיים שחורים, גרביים עד הברך, נעלי קטרגל עם פס ירוק בוהק וכפפות שוער גדולות. המכות והנתונים שלו לא השתנו','אנימציית הגנה: כשלוחצים על כפתור ההגנה (🛡️) הדמות מרימה את הידיים קדימה ליד הפנים, כמו בהגנה אמיתית, ואם היא חוטפת מכה בזמן ההגנה הידיים נשארות למעלה וזזות קצת מההדף. זה עובד לכל הדמויות, גם בהליכה ובכריעה וגם באונליין','אייפון ומכשירים חזקים אחרים: לחיצה קצרה על קפיצה, הגנה, כריעה והחיצים כבר לא הולכת לאיבוד כשהמסך נתקע לרגע (הלחיצה נשמרת עד שהמשחק מספיק לראות אותה). הכפתורים הורחקו מקצוות המסך, שם האייפון תופס החלקות של המערכת ומאחר את הנגיעה, ובין כפתורי ההתקפה יש רווח גדול יותר. בנוסף המשחק זוכר איזו רמת גרפיקה המכשיר החזיק בפעם הקודמת, ובטלפונים הרקע של הזירה מצויר מההתחלה ב־70% מהרזולוציה (בלי הבדל לעין) כדי שלא יהיו תקיעות בתחילת הקרב','אונליין: אחרי משחק חוזר גם האורח יכול לשחק כרגיל. בעבר המארח התעלם מכמה מהלחיצות הראשונות שלו במשחק השני, וזה נראה כמו תקיעה']],
  ['3.2',['דמות שביעית: גל כחלון, איש העסקים שאוהב כסף יותר מכל דבר. שלוש מכות: חבילות כסף שנזרקות על היריב (4% לחבילה), גשם נעלי ספורט שנופל מהשמיים (5% לנעל, והצללים על הרצפה מראים איפה כל נעל תנחת) ותפילין: רצועה שתופסת את היריב מרחוק, מושכת אותו אליו ומורידה לו 20% מהחיים','לירון: שתי מכות חדשות במקום זריקת הג׳ודו ותגובת הנגד. חמישה טפסי טוטו שנזרקים בזה אחר זה (10% לכל טופס, חצי מהחיים אם כולם פוגעים, והטעינה איטית), וסמל מכבי נתניה שאם פוגע הופך את היריב על הראש ל־2 שניות. מי שהפוך לא יכול להתקיף או להגן, רק ללכת. אופנוע המשלוחים נשאר כמו שהיה','אונליין: בסוף משחק הכפתור ״משחק חוזר״ מחזיר את שני השחקנים ללובי עם אותן דמויות, ואפשר ללחוץ עליו גם כאורח. ככה מתחילים משחק מהיר בלי לפתוח לובי מחדש ובלי לצאת לתפריט הראשי','ציור חדש לידיים ולרגליים של כל הדמויות: גפיים מחוברות לגוף במקום מקלות, עם שרירים, כתפיים, מרפקים וברכיים, שרוולים ומכנסיים שעוטפים אותן, אגרופים ונעליים מפורטות (סוליות, שרוכים, מגפיים וכפות רגליים יחפות)']],
  ['3.1',['גרפיקה חדשה לדמויות בסגנון משחקי המכות הקלאסיים: קווי מתאר עבים, צללים וגוונים כמו בקומיקס, פרופורציות גבוריות וצל חזק על הרצפה','הפנים של החברים צוירו מחדש באותו סגנון והדמיון נשמר','HUD חדש: פס חיים רחב עם שובל נזק, תמונת פנים, שם ותפקיד, יהלומי ניצחונות, שלוש מכות מיוחדות עם טעינה, טיימר עגול והודעות ברורות על מצבים (מושתק, מעולף, לכוד, מואט, חלש)','באנרים חדשים בתחילת קרב, בנוקאאוט ובניצחון','כל טקסטי ה־HUD בגופן מגדל העמק של אלעד מזרחי (רישיון SIL OFL)']],
  ['3.0',['דמות שישית: ליאב נעים – הכי גבוה והכי רחב מכולם. אוהב לקלל בערבית ושולח בועות טקסט שמורידות קצת חיים','ליאב: צעיף ביתר ירושלים בשחור־צהוב שחונק את היריב ומשתיק אותו לשנייה (אפשר לחסום או להתכופף מתחתיו)','ליאב: נחירה חזקה שכואבת באוזניים, תופסת את היריב ומאטה אותו ל־1.75 שניות','גאולה הוחלשה: טווח המכות קצר יותר וגל הילדים חלש יותר (30% במקום 35%)','זירת השוק: הוסרו הצללים המיותרים מהרצפה','המשחק מזהה אם משחקים בטלפון, בטאבלט או במחשב. במחשב אפשר לשנות מקשים: הגדרות ← מקשים','ביצועים: המשחק מתאים את איכות הציור למכשיר כדי שירוץ חלק וללא תקיעות (הרקע מצויר בקטן רק כשצריך, והלוחמים נשארים חדים). בטלפונים עם מסך 120Hz ומעלה הציור הוא ב־60 כדי לחסוך סוללה','אונליין: שני השחקנים צריכים את אותה גרסה. אם לאחד יש גרסה אחרת, הלובי יגיד את זה במפורש']],
@@ -4506,7 +4534,7 @@ const NFMQ=(()=>{
 
 /* ============ 08 NET: lobby + host-authoritative online play over the `room` capability ============ */
 const NET={role:null,code:'',rm:null,room:null,myChar:-1,nick:'',cfg:{s:0,m:'arcade',r:3,t:60},sl:[null,null],ph:'l',mid:0,lastMid:0,rqSeen:{},
-  peers:[],hostP:null,meP:null,playing:false,buf:[],off:null,mask:0,pc:BTNS.map(()=>0),seen:[null,null],evSeen:0,unsub:[],lastS:null,pubT:0,busy:false,conn:true};
+  peers:[],hostP:null,meP:null,playing:false,buf:[],off:null,mask:0,pc:BTNS.map(()=>0),hc:[0,0,0,0,0],seen:[null,null],evSeen:0,unsub:[],lastS:null,pubT:0,busy:false,conn:true};
 const CODE_CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const BIT={l:1,r:2,u:4,d:8,b:16};
 const nfLog=()=>{};
@@ -4537,7 +4565,7 @@ async function netOpen(code,asHost){
   const room=await netRoomNs(); if(!room)throw 'unavailable';
   if(await netPermCheck()==='denied')throw 'denied';
   let rm; try{ rm=await room.join('nf-'+code.toLowerCase()); }catch(e){ throw (e&&e.code)||'upstream_error'; }
-  NET.rm=rm; NET.code=code; NET.role=asHost?'host':'guest'; NET.ph='l'; NET.playing=false; NET.sl=[null,null]; NET.rqSeen={}; NET.buf.length=0; NET.off=null; NET.evSeen=0; NET.lastMid=0; NET.mask=0; NET.pc=BTNS.map(()=>0);
+  NET.rm=rm; NET.code=code; NET.role=asHost?'host':'guest'; NET.ph='l'; NET.playing=false; NET.sl=[null,null]; NET.rqSeen={}; NET.buf.length=0; NET.off=null; NET.evSeen=0; NET.lastMid=0; NET.mask=0; NET.pc=BTNS.map(()=>0); NET.hc=[0,0,0,0,0];
   NET.tilesBuilt=0; NET.unsub.push(rm.onPeers(()=>netPeersChanged()));
   try{ NET.unsub.push(rm.onConnection(c=>{ NET.conn=c; if(!c&&NET.role)setTimeout(()=>{ if(!rm.connected()&&NET.role)toast('החיבור נותק… מנסה להתחבר מחדש'); },2500); })); }catch(e){}
   try{ await rm.presence(netMyPresence(asHost?{h:1,cfg:NET.cfg,sl:NET.sl,ph:'l',mid:0}:{})); }
@@ -4634,8 +4662,8 @@ NET.backToLobby=function(){ if(NET.role==='host'){ NET.ph='l'; NET.playing=false
 NET.requestRematch=function(){ if(NET.role==='guest'&&NET.rm)NET.rm.presence({rq:Date.now()}); };
 NET.leave=function(){ netLeave(); };
 function netStartLocal(mm,me){
-  NET.playing=true; NET.buf.length=0; NET.off=null; NET.evSeen=0; NET.mask=0; NET.pc=BTNS.map(()=>0);
-  if(NET.rm)NET.rm.presence({i:0,pc:NET.pc});
+  NET.playing=true; NET.buf.length=0; NET.off=null; NET.evSeen=0; NET.mask=0; NET.pc=BTNS.map(()=>0); NET.hc=[0,0,0,0,0];
+  if(NET.rm)NET.rm.presence({i:0,pc:NET.pc,hc:NET.hc,m:NET.role==='host'?NET.mid:NET.lastMid});
   UI.stack=['lobby'];
   startGame({mode:'online',ch:mm.ch,cpu:[0,0],diff:0,rounds:mm.cfg.r,time:mm.cfg.t,stage:mm.cfg.s,music:mm.cfg.m,names:mm.nm,me:me});
 }
@@ -4657,11 +4685,28 @@ function tapDash(i,k,v){
   if(now-s.t<=TAPW){ s.t=-1e9; pressTo(i,k==='r'?'DR':'DL'); } else s.t=now;
 }
 function tapReset(){ for(const t of TAP){ t.l.t=t.r.t=-1e9; t.l.h=t.r.h=0; } }
-function heldTo(i,k,v){
-  if(i<0||UI.scene!=='game'||i!==UI.me&&G.mode!=='2p')return;
-  if(k==='l'||k==='r')tapDash(i,k,v);
-  if(G.mode==='online'&&NET.role==='guest'){ if(v)NET.mask|=BIT[k]; else NET.mask&=~BIT[k]; netSendInput(); return; }
+/* Arrows, jump, crouch and block are STATES ("is it held right now?") that the game reads once per step, and a tap can be over before the next step:
+   a busy phone hands the finger's down and up over together, after the stall, and then the tap would vanish. So every held input lasts at least
+   HOLDMIN steps (about 50 ms). The same minimum is kept on the wire (the guest) and for what arrives from the guest (the host). */
+const HOLDMIN=3, HK=['l','r','u','d','b'];
+const RAWI=[{l:0,r:0,u:0,d:0,b:0},{l:0,r:0,u:0,d:0,b:0}], HLD=[{l:0,r:0,u:0,d:0,b:0},{l:0,r:0,u:0,d:0,b:0}];
+function holdApply(i,k){
+  const v=(RAWI[i][k]||HLD[i][k]>0)?1:0;
+  if(G.mode==='online'&&NET.role==='guest'){ const b=BIT[k], w=RAWI[i][k]?1:0; if(((NET.mask&b)?1:0)!==w){ if(w)NET.mask|=b; else NET.mask&=~b; netSendInput(); } return; }      /* the minimum is kept by the host, from the counters */
   const f=G.f[i]; if(f)f.inp[k]=v;
+}
+function holdTick(){      /* once per step, before the game reads its inputs */
+  const fight=G.ph==='fight';
+  for(let i=0;i<2;i++)for(let n=0;n<5;n++){ const k=HK[n]; if(HLD[i][k]>0){ HLD[i][k]=fight?HLD[i][k]-1:0; if(HLD[i][k]<=0)holdApply(i,k); } }
+}
+function holdReset(){ for(let i=0;i<2;i++)for(const k of HK){ RAWI[i][k]=0; HLD[i][k]=0; } }
+function heldTo(i,k,v){
+  if(i<0||i>1)return;
+  if(!v)RAWI[i][k]=0;                 /* a release always counts, even when the game is not on screen */
+  if(UI.scene!=='game'||i!==UI.me&&G.mode!=='2p')return;
+  if(k==='l'||k==='r')tapDash(i,k,v);
+  if(v){ if(!RAWI[i][k]&&G.mode==='online'&&NET.role==='guest')NET.hc[HK.indexOf(k)]++; RAWI[i][k]=1; HLD[i][k]=HOLDMIN; }
+  holdApply(i,k);
 }
 function pressTo(i,b){
   if(i<0||UI.scene!=='game'||UI.paused||i!==UI.me&&G.mode!=='2p')return;
@@ -4670,18 +4715,24 @@ function pressTo(i,b){
 }
 function localHeld(k,v){ heldTo(UI.me,k,v); }
 function localPress(b){ pressTo(UI.me,b); }
-function netSendInput(){ if(NET.rm)NET.rm.presence({i:NET.mask,pc:NET.pc.slice()}); }
+/* i: the arrows / block as they are held now; pc / hc: how many times every button / every arrow was PRESSED (counters, so a tap survives even when the relay merges two quick updates into one);
+   m: the match the counters belong to (they start from zero in every match) */
+function netSendInput(){ if(NET.rm)NET.rm.presence({i:NET.mask,pc:NET.pc.slice(),hc:NET.hc.slice(),m:NET.lastMid}); }
 function netHostInput(){
   if(NET.role!=='host'||!NET.playing)return;
   const hostSlot=NET.meP?NET.sl.indexOf(NET.meP.peer):-1;
   for(let i=0;i<2;i++){
     if(i===hostSlot)continue; const p=NET.peers.find(x=>x.peer===NET.sl[i]); const f=G.f[i]; if(!p||!f)continue;
     const pr=p.presence; if(pr.i===undefined)continue;
-    for(const k in BIT)f.inp[k]=(pr.i&BIT[k])?1:0;
+    /* the guest enters a new match a moment after the host: until it says it has (m), what its presence shows is left over from the match before */
+    if(pr.m!==NET.mid){ NET.seen[i]=null; for(const k of HK){ RAWI[i][k]=0; holdApply(i,k); } continue; }
+    if(!NET.seen[i]||NET.seen[i].peer!==p.peer)NET.seen[i]={peer:p.peer,pc:BTNS.map(()=>0),hc:[0,0,0,0,0]};      /* every match starts the counters at zero: nothing the guest pressed so far may be dropped */
+    const sn=NET.seen[i].pc, sh=NET.seen[i].hc, hc=pr.hc;
+    for(let n=0;n<5;n++){ const k=HK[n], v=(pr.i&BIT[k])?1:0;
+      if(hc){ if(hc[n]>sh[n]){ sh[n]=hc[n]; HLD[i][k]=HOLDMIN; } else if(hc[n]<sh[n])sh[n]=hc[n]; }      /* a tap that came and went between two updates still counts */
+      if(v&&!RAWI[i][k])HLD[i][k]=HOLDMIN; RAWI[i][k]=v; holdApply(i,k); }
     const pc=pr.pc; if(!pc)continue;
-    if(!NET.seen[i]||NET.seen[i].peer!==p.peer)NET.seen[i]={peer:p.peer,pc:pc.slice()};
-    const sn=NET.seen[i].pc;
-    for(let k=0;k<BTNS.length;k++){ let n=pc[k]-sn[k]; if(!(n>0))n=0; if(n>0){ press(f,BTNS[k]); if(n>1)press(f,BTNS[k]); sn[k]=pc[k]; } }
+    for(let k=0;k<BTNS.length;k++){ let n=pc[k]-sn[k]; if(n<0){ sn[k]=pc[k]; n=0; } if(n>0){ press(f,BTNS[k]); if(n>1)press(f,BTNS[k]); sn[k]=pc[k]; } }
   }
 }
 
@@ -4932,7 +4983,7 @@ function pfStats(){
 }
 function pfApply(lv,why){
   const dch=PF_LV[lv].d!==PF_LV[PF.lv].d;
-  PF.lv=lv; PF.n=0; PF.ri=0; PF.badN=0; PF.warm=dch?10:5; PF.evalIn=PF.probe?30:48; UI.dirty=1;
+  PF.lv=lv; PF.lvAt=performance.now(); PF.savedLv=-1; PF.n=0; PF.ri=0; PF.badN=0; PF.warm=dch?10:5; PF.evalIn=PF.probe?30:48; UI.dirty=1;
   if(PF.log.length<80)PF.log.push([Math.round(performance.now()),lv,why||'']);
   if(dch)resize();
   if(lv>=3&&!PF.told){ PF.told=true; try{ toast('הורדתי קצת את איכות הגרפיקה כדי שהמשחק יהיה חלק'); }catch(e){} }
@@ -4953,7 +5004,8 @@ function pfEval(now){
     if(bad&&s.mean>pr.m*.9&&s.late>pr.l*.7){ PF.backoff=Math.min(PF.backoff*2,6e5); PF.holdDown=now+PF.backoff; pfApply(pr.from,'undo: the resolution was not the limit'); }
     return;
   }
-  if(!pr&&good&&PF.lv>PF.min&&now>=PF.upAt){ PF.lastUp=now; PF.upAt=now+PF.upDelay; pfApply(PF.lv-1,'up'); }
+  if(!pr&&good&&PF.lv>PF.min&&now>=PF.upAt){ PF.lastUp=now; PF.upAt=now+PF.upDelay; pfApply(PF.lv-1,'up'); return; }
+  if(!pr&&!bad&&PF.lvAt&&now-PF.lvAt>2e4)pfRemember();       /* steady for 20 s at this level: that is what this device can hold */
 }
 function pfSample(di,now){
   if(!PF.ready||di>250)return;
@@ -4975,9 +5027,22 @@ function pfRaw(x){
   PF.base=med; PF.hi=PF.hi?med<12:med<9.6;                 /* above ~104 Hz (and until it falls under ~83 Hz) */
   if(PF.T>STEP*1.5&&med<22)PF.T=STEP;                      /* it is not a 30 Hz screen after all: the target is 60 again */
 }
+/* What a device has shown it can hold is remembered (per device kind, screen and pixel density), so a match does not open with a few seconds of stutter while the ladder
+   walks down again (every step reallocates the canvas). A phone or tablet never starts above the first rung: it draws the backdrop at 70 %, which looks the same and is
+   the cheapest saving there is. The memory is a week old at most and is ignored when the player picks another quality. */
+function pfDevKey(){ try{ return devKind()+'|'+Math.round(Math.min(screen.width||0,screen.height||0))+'|'+(window.devicePixelRatio||1); }catch(e){ return ''; } }
 function pfPref(){       /* the player's quality choice is the starting point of the ladder */
-  PF.min=SET.q==='low'?2:0; PF.lv=PF.min; PF.probe=null; PF.holdDown=0; PF.upAt=0; PF.n=0; PF.ri=0; PF.badN=0; PF.warm=8; PF.evalIn=48; UI.dirty=1;
+  PF.min=SET.q==='low'?2:(devKind()!=='pc'?1:0);
+  let lv=PF.min;
+  try{ const sv=store.get('pfLv',null); if(sv&&sv.k===pfDevKey()&&sv.q===SET.q&&Date.now()-sv.t<6048e5)lv=Math.max(lv,Math.min(4,sv.lv|0)); }catch(e){}
+  PF.lv=lv; PF.lvAt=performance.now(); PF.savedLv=-1; PF.probe=null; PF.holdDown=0; PF.upAt=0; PF.n=0; PF.ri=0; PF.badN=0; PF.warm=8; PF.evalIn=48; UI.dirty=1;
   resize();
+}
+function pfRemember(){      /* called when the picture has been steady for a while at the current level */
+  if(PF.savedLv===PF.lv)return; PF.savedLv=PF.lv;
+  const k=pfDevKey(), sv=store.get('pfLv',null);
+  if(sv&&sv.k===k&&sv.q===SET.q&&sv.lv===PF.lv&&Date.now()-sv.t<864e5)return;
+  store.set('pfLv',{k,q:SET.q,lv:PF.lv,t:Date.now()});
 }
 /* the screen's refresh period is measured before anything is drawn (so it is not mixed up with a slow device) */
 function pfProbeStart(){
@@ -5116,6 +5181,7 @@ function stepOnce(){
   const sc=UI.scene, online=G.mode==='online', guest=online&&NET.role==='guest';
   if(sc==='game'){
     if(UI.paused)return;
+    holdTick();
     if(!guest){
       if(online&&NET.role==='host')netHostInput();
       G.ev.length=0; simStep(); for(let i=0;i<G.ev.length;i++)fxEvent(G.ev[i]);
