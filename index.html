@@ -449,7 +449,7 @@ const store={
   set(k,v){try{localStorage.setItem('nf.'+k,JSON.stringify(v))}catch(e){}}
 };
 
-const VERSION='3.5';                 /* bump on every published change; shown in the game as "v.2.5" */
+const VERSION='3.6';                 /* bump on every published change; shown in the game as "v.2.5" */
 /* the HUD typeface: "Migdal HaEmek" (a very heavy, blocky Hebrew face by Elad Mizrahi, SIL Open Font License), embedded in the page as a data: font when its file sits in
    assets/fonts (build.py does that). It has Hebrew letters only, so digits and Latin letters come from Heebo (its 900 weight is the same blocky class); Secular One is the last
    resort. UIFONT_ON is set once the browser has really loaded the face (uiFontsReady); until then, or when it is not embedded, the HUD keeps the v3.0 type (Secular One, 400). */
@@ -4689,6 +4689,7 @@ addEventListener('appinstalled',()=>{ INST=null; syncInstall(); try{ toast('הא
 
 /* ---------- version / what's new ---------- */
 const CHANGES=[
+ ['3.6',['אונליין, כשאתה לא המנהל: התמונה אצל האורח חלקה. עד עכשיו היא התעדכנה רק בערך כל פריים רביעי ונתקעה כשהמארח נתקע לרגע או כשהרשת התנדנדה. עכשיו האורח רואה את מה שהמארח עשה עם עיכוב קטן שמתאים את עצמו לרשת (בערך 0.15 עד 0.25 שנייה ברשת טובה, יותר ברשת חלשה) ובלי קפיצות','המארח מצרף לכל עדכון את השעון שלו, כך שתקיעה של המארח לא נראית אצל האורח כרשת איטית ולא מנפחת את העיכוב','אם המארח נעלם באמצע משחק, ממתינים לו כמה שניות לפני שמוותרים. אם חבר נעלם בזמן שהוא מחזיק כפתור, הדמות שלו לא ממשיכה ללכת לבד','מסך הטלפון במצב אופקי: אחרי סיבוב, חלק מהטלפונים ממשיכים לדווח את הגודל הישן של המסך ולא שולחים אירוע חדש, והמשחק נשאר מצויר לאורך ונמתח לרוחב (כותרת דחוסה למעלה, לוחמים מעוכים ופס ריק למטה). עכשיו הגודל נמדד מהמסך עצמו ונבדק שוב אחרי כל סיבוב','בפרטים הטכניים של מסך האונליין מופיעים עכשיו גם מידות המסך כפי שהטלפון מדווח']],
  ['3.5',['דמות שמינית: מיכאל ממן, הגיימר. אוזניות על הצוואר ומכוש ביד במקום אגרופים: דקירה ארוכה (אגרוף קל), מכת מכוש כבדה מלמעלה (אגרוף חזק, אפשר לחסום רק בעמידה) וחפירה שמרימה את היריב. טווח ארוך יותר והתקפות קצת איטיות יותר, והבעיטות רגילות','מיכאל, שלוש מכות מיוחדות: חבטת מכוש (20%, הנפה גבוהה שמעיפה את היריב עם גל רסיסים, אי אפשר לחסום בהתכופפות), בנייה! (קיר עץ שעוצר את היריב ואת כל מה שהוא זורק או מכה דרכו, מיכאל והקליעים שלו עוברים דרכו, והקיר נשבר אחרי 3 מכות או 4 שניות) ושיקוי ריפוי (12% מהחיים בהדרגה, אבל בזמן השתייה הוא חשוף ומכה עוצרת אותה)','ריקוד ניצחון ומשפטי קרב משלו, והמחשב יודע לשחק איתו ונגדו (גם לשבור את הקיר)','מסך בחירת הדמות עם 8 כרטיסים: השמות מתכווצים לפי רוחב הכרטיס ונשארים קריאים בטלפון','אונליין: הקיר של מיכאל, החיים שלו והשיקוי מסונכרנים בין שני הטלפונים']],
  ['3.4',['תיקון ציור בבטן של ליאב וגל: החולצה היא עכשיו צורה אחת רציפה, בלי הקו והמלבן שנראו כמו תפר בבטן. שולי החולצה מעוגלים, עם תפר קטן, והיא יורדת על המכנסיים בצורה טבעית וגם בכריעה ובמכות','צווארונים טבעיים לכל הדמויות: המשולש החד שהיה בצוואר הוחלף בצווארון רך שיושב מאחורי הראש. בלירון וליאב יש עכשיו צווארון סרוג מעוגל, בדניאל, אדיר, אלי וגל צווארון קטן עם כנפיים מעוגלות, ובגאולה צווארון עגול. הצוואר עצמו מצויר מתחת לצווארון ולא נראים בו קווים']],
  ['3.3',['לירון: אופי חדש – השליח המהמר. עכשיו הוא לבוש כמו שוער כדורגל: חולצה כחולה ארוכה עם סמל קובייה, מכנסיים שחורים, גרביים עד הברך, נעלי קטרגל עם פס ירוק בוהק וכפפות שוער גדולות. המכות והנתונים שלו לא השתנו','אנימציית הגנה: כשלוחצים על כפתור ההגנה (🛡️) הדמות מרימה את הידיים קדימה ליד הפנים, כמו בהגנה אמיתית, ואם היא חוטפת מכה בזמן ההגנה הידיים נשארות למעלה וזזות קצת מההדף. זה עובד לכל הדמויות, גם בהליכה ובכריעה וגם באונליין','אייפון ומכשירים חזקים אחרים: לחיצה קצרה על קפיצה, הגנה, כריעה והחיצים כבר לא הולכת לאיבוד כשהמסך נתקע לרגע (הלחיצה נשמרת עד שהמשחק מספיק לראות אותה). הכפתורים הורחקו מקצוות המסך, שם האייפון תופס החלקות של המערכת ומאחר את הנגיעה, ובין כפתורי ההתקפה יש רווח גדול יותר. בנוסף המשחק זוכר איזו רמת גרפיקה המכשיר החזיק בפעם הקודמת, ובטלפונים הרקע של הזירה מצויר מההתחלה ב־70% מהרזולוציה (בלי הבדל לעין) כדי שלא יהיו תקיעות בתחילת הקרב','אונליין: אחרי משחק חוזר גם האורח יכול לשחק כרגיל. בעבר המארח התעלם מכמה מהלחיצות הראשונות שלו במשחק השני, וזה נראה כמו תקיעה']],
@@ -4963,7 +4964,7 @@ async function netOpen(code,asHost){
   const room=await netRoomNs(); if(!room)throw 'unavailable';
   if(await netPermCheck()==='denied')throw 'denied';
   let rm; try{ rm=await room.join('nf-'+code.toLowerCase()); }catch(e){ throw (e&&e.code)||'upstream_error'; }
-  NET.rm=rm; NET.code=code; NET.role=asHost?'host':'guest'; NET.ph='l'; NET.playing=false; NET.sl=[null,null]; NET.rqSeen={}; NET.buf.length=0; NET.off=null; NET.evSeen=0; NET.lastMid=0; NET.mask=0; NET.pc=BTNS.map(()=>0); NET.hc=[0,0,0,0,0];
+  NET.rm=rm; NET.code=code; NET.role=asHost?'host':'guest'; NET.ph='l'; NET.playing=false; NET.sl=[null,null]; NET.rqSeen={}; NET.buf.length=0; jbReset(); NET.evSeen=0; NET.lastMid=0; NET.mask=0; NET.pc=BTNS.map(()=>0); NET.hc=[0,0,0,0,0];
   NET.tilesBuilt=0; NET.unsub.push(rm.onPeers(()=>netPeersChanged()));
   try{ NET.unsub.push(rm.onConnection(c=>{ NET.conn=c; if(!c&&NET.role)setTimeout(()=>{ if(!rm.connected()&&NET.role)toast('החיבור נותק… מנסה להתחבר מחדש'); },2500); })); }catch(e){}
   try{ await rm.presence(netMyPresence(asHost?{h:1,cfg:NET.cfg,sl:NET.sl,ph:'l',mid:0}:{})); }
@@ -5001,7 +5002,8 @@ async function netJoin(code,nick){
 }
 async function netLeave(silent){
   NET.unsub.forEach(u=>{try{u()}catch(e){}}); NET.unsub=[];
-  const rm=NET.rm; NET.rm=null; NET.role=null; NET.playing=false; NET.hostP=null; NET.meP=null; NET.peers=[]; NET.buf.length=0;
+  clearTimeout(NET.lostTm); NET.lostTm=0; NET.hadHost=false;
+  const rm=NET.rm; NET.rm=null; NET.role=null; NET.playing=false; NET.hostP=null; NET.meP=null; NET.peers=[]; NET.buf.length=0; jbReset();
   try{ if(rm)await rm.leave(); }catch(e){}
 }
 
@@ -5012,7 +5014,14 @@ function netPeersChanged(){
   NET.meP=ps.find(p=>p.sameTab)||null;   /* sameTab = this very document; isMe would also match my other devices */
   NET.hostP=ps.find(p=>p.presence.h===1)||null;
   if(NET.role==='guest'){
-    if(!NET.hostP){ if(NET.hadHost){ NET.hadHost=false; netHostLost(); } return; }
+    if(!NET.hostP){
+      if(NET.hadHost&&!NET.lostTm){      /* a reconnect shows up as a missing host for a moment too: mid-match the lobby is closed only if he stays away */
+        const go=()=>{ NET.lostTm=0; if(NET.role==='guest'&&!NET.hostP&&NET.hadHost){ NET.hadHost=false; netHostLost(); } };
+        if(NET.playing){ toast('החיבור למנהל נפסק… ממתין לו'); NET.lostTm=setTimeout(go,5000); } else go();
+      }
+      return;
+    }
+    if(NET.lostTm){ clearTimeout(NET.lostTm); NET.lostTm=0; }
     NET.hadHost=true;
     const h=NET.hostP.presence; if(h.cfg)NET.cfg=h.cfg; if(h.sl)NET.sl=h.sl;
     const meSlot=NET.meP?NET.sl.indexOf(NET.meP.peer):-1;
@@ -5029,7 +5038,7 @@ function netPeersChanged(){
   }
   if(typeof renderLobby==='function'&&UI.cur==='lobby')renderLobby();
 }
-function netHostLost(){ if(!NET.role)return; toast('מנהל הלובי יצא. הלובי נסגר'); netLeave(true).then(()=>{ if(NET.playing||UI.scene==='game'){ G.ph='menu'; $('#ov-over').classList.remove('on'); } UI.stack=['title']; show('online'); }); }
+function netHostLost(){ if(!NET.role)return; clearTimeout(NET.lostTm); NET.lostTm=0; toast('מנהל הלובי יצא. הלובי נסגר'); netLeave(true).then(()=>{ if(NET.playing||UI.scene==='game'){ G.ph='menu'; $('#ov-over').classList.remove('on'); } UI.stack=['title']; show('online'); }); }
 
 /* ---- lobby actions ---- */
 NET.setChar=function(i){ NET.myChar=i; if(NET.rm)NET.rm.presence({c:i}); };
@@ -5060,7 +5069,7 @@ NET.backToLobby=function(){ if(NET.role==='host'){ NET.ph='l'; NET.playing=false
 NET.requestRematch=function(){ if(NET.role==='guest'&&NET.rm)NET.rm.presence({rq:Date.now()}); };
 NET.leave=function(){ netLeave(); };
 function netStartLocal(mm,me){
-  NET.playing=true; NET.buf.length=0; NET.off=null; NET.evSeen=0; NET.mask=0; NET.pc=BTNS.map(()=>0); NET.hc=[0,0,0,0,0];
+  NET.playing=true; NET.buf.length=0; jbReset(); NET.evSeen=0; NET.mask=0; NET.pc=BTNS.map(()=>0); NET.hc=[0,0,0,0,0];
   if(NET.rm)NET.rm.presence({i:0,pc:NET.pc,hc:NET.hc,m:NET.role==='host'?NET.mid:NET.lastMid});
   UI.stack=['lobby'];
   startGame({mode:'online',ch:mm.ch,cpu:[0,0],diff:0,rounds:mm.cfg.r,time:mm.cfg.t,stage:mm.cfg.s,music:mm.cfg.m,names:mm.nm,me:me});
@@ -5120,7 +5129,8 @@ function netHostInput(){
   if(NET.role!=='host'||!NET.playing)return;
   const hostSlot=NET.meP?NET.sl.indexOf(NET.meP.peer):-1;
   for(let i=0;i<2;i++){
-    if(i===hostSlot)continue; const p=NET.peers.find(x=>x.peer===NET.sl[i]); const f=G.f[i]; if(!p||!f)continue;
+    if(i===hostSlot)continue; const p=NET.peers.find(x=>x.peer===NET.sl[i]); const f=G.f[i];
+    if(!p||!f){ if(f&&NET.seen[i]){ NET.seen[i]=null; for(const k of HK){ RAWI[i][k]=0; HLD[i][k]=0; holdApply(i,k); } } continue; }      /* gone (a dropped line): do not leave the last keys held down */
     const pr=p.presence; if(pr.i===undefined)continue;
     /* the guest enters a new match a moment after the host: until it says it has (m), what its presence shows is left over from the match before */
     if(pr.m!==NET.mid){ NET.seen[i]=null; for(const k of HK){ RAWI[i][k]=0; holdApply(i,k); } continue; }
@@ -5136,47 +5146,78 @@ function netHostInput(){
 
 /* ---- host snapshot ---- */
 const r1=v=>Math.round(v*10)/10;
-function netPublishSnap(){
-  if(!NET.rm)return;
+function netMakeSnap(){
   const fs=G.f.map(f=>[r1(f.x),r1(f.y),f.fc,STI[f.st],f.t|0,f.mv?f.mv.n:-1,f.mf|0,r1(f.hp),r1(f.hpG),f.cd[0],f.cd[1],f.cd[2],f.flash,f.say,f.sayT,f.weep,f.bike,Math.round(f.rot*100),f.thr?f.thr.t:-1,f.inv,f.stun|0,f.guard,f.cbShow,f.cbT,f.taken,Math.round(f.vx*10),Math.round(f.vy*10),f.pk|0,f.bst|0,f.dd|0,f.slw|0]);
   const pj=G.proj.map(p=>p.k==='wall'?[p.id,PJK.indexOf(p.k),r1(p.x),r1(p.y),0,0,0,p.own,p.life|0,p.hp|0,p.hitT|0]:[p.id,PJK.indexOf(p.k),r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),Math.round(p.rot*100),p.own,p.life|0]);      /* v3.5: a wall row carries its hp and hit flash too */
-  const s={k:G.clock,p:PHS.indexOf(G.ph),pt:G.phT,tm:G.time,rd:G.round,rw:G.rw,w:G.win,sh:Math.round(G.shake*10),pu:G.punch,o:G.over?G.over.w:-1,f:fs,pj,ev:G.evLog.slice(-14)};
-  NET.rm.presence({s});
+  return {k:G.clock,hw:Math.round(performance.now()),p:PHS.indexOf(G.ph),pt:G.phT,tm:G.time,rd:G.round,rw:G.rw,w:G.win,sh:Math.round(G.shake*10),pu:G.punch,o:G.over?G.over.w:-1,f:fs,pj,ev:G.evLog.slice(-14)};
 }
-/* ---- guest: buffer + interpolate ---- */
-function netPushSnap(s){
-  if(NET.buf.length&&NET.buf[NET.buf.length-1].k>=s.k)return;
-  const now=performance.now(), o=now-s.k*DT;
-  NET.off=NET.off===null?o:Math.min(NET.off+.002*DT,o);   /* creeping minimum keeps the clock offset honest */
-  NET.buf.push(s); while(NET.buf.length>16)NET.buf.shift();
+function netPublishSnap(){ if(NET.rm)NET.rm.presence({s:netMakeSnap()}); }
+
+/* ---- guest: the host's timeline, played from a small buffer ----
+   Snapshots reach the guest whenever the network and the relay feel like it: merged, held back, delivered in bursts. The picture must not follow that rhythm.
+   The guest plays the host's timeline (counted in host frames) with a "head" that moves at the normal speed, a few frames behind the newest snapshot:
+   - how far behind is set by how bumpy the arrivals have been lately (a quiet line costs about 80 ms, a bumpy one up to about 330 ms);
+   - the head speeds up or slows down by at most ~15% to hold that distance, so the motion neither jumps nor stops; when nothing arrives for a while
+     the last known motion simply goes on for JBX frames; only a huge backlog (a phone that was asleep) moves the head in one step. */
+const JBX=6;      /* frames the picture may run on past the newest snapshot */
+const JBP={muUp:.06,muDn:.06,half:3000,w:.85,cap:300,pad:25,lo:4.5,hi:22,kp:.02,tau:350,fast:.18,slow:.15};     /* the knobs (test/net_harness.js sweeps them) */
+const JB={n:0,ht:0,t:0,newK:-1,newT:0,gap:2.4,mu:0,jit:0,bf:0,rate:1};
+function jbReset(){ JB.n=0; JB.ht=0; JB.t=0; JB.newK=-1; JB.newT=0; JB.gap=2.4; JB.mu=0; JB.jit=0; JB.bf=0; JB.rate=1; NET.ht=0; }
+function jbNeed(){ return clamp((JB.gap*DT+JBP.w*Math.min(JB.jit,JBP.cap)+JBP.pad)/DT,JBP.lo,JBP.hi); }      /* frames the head stays behind the newest snapshot */
+function netPushSnap(s,now){
+  if(now===undefined)now=performance.now();
+  const b=NET.buf; if(b.length&&b[b.length-1].k>=s.k)return;
+  /* How late this one is = my clock minus the host's clock at the moment it was sent (hw), plus whatever the line added. The host's own game clock (k) must not be used for that:
+     a host that stumbles (a frame of a second, a phone under load) stops counting frames for a while, and that would look like a line that suddenly got a second slower. */
+  const r=now-(s.hw!==undefined?s.hw:s.k*DT);
+  if(JB.n&&now-JB.newT>1500)JB.n=0;      /* nothing for a second and a half (a sleeping phone, a dead line): start over, as for a new join */
+  if(!JB.n){ JB.mu=r; JB.jit=0; JB.gap=2.4; JB.t=now; JB.ht=s.k-6; JB.bf=6; }
+  else{
+    const d=r-JB.mu;       /* how much later than usual */
+    JB.mu+=d*(d>0?JBP.muUp:JBP.muDn);
+    JB.jit=Math.max(d,JB.jit*Math.pow(.5,(now-JB.newT)/JBP.half));
+    JB.gap+=.08*(Math.min(s.k-JB.newK,12)-JB.gap);
+  }
+  JB.n++; JB.newK=s.k; JB.newT=now;
+  b.push({k:s.k,ta:now,s}); while(b.length>40)b.shift();
 }
 const L=(a,b,t)=>a+(b-a)*t;
 function netGuestApply(now){
-  if(!NET.buf.length||NET.off===null)return false;
-  const ht=(now-NET.off-140)/DT; /* host clock (frames) we want to show */
-  let b=NET.buf, i=0; while(i<b.length-2&&b[i+1].k<=ht)i++;
-  const s0=b[i], s1=b[i+1]&&b[i+1].k>s0.k?b[i+1]:null;
-  let u=s1?clamp((ht-s0.k)/(s1.k-s0.k),0,1.15):clamp(ht-s0.k,0,2)/2;
-  const ex=s1?(ht-s0.k):Math.min(ht-s0.k,2);
+  const b=NET.buf; if(!b.length||!JB.n)return false;
+  const dtm=Math.min(100,Math.max(0,now-JB.t)); JB.t=now;
+  const need=jbNeed(), B=JB.newK-JB.ht;
+  JB.bf+=(B-JB.bf)*(1-Math.exp(-dtm/JBP.tau));
+  JB.rate=1+clamp(JBP.kp*(JB.bf-need),-JBP.slow,JBP.fast); JB.ht+=dtm/DT*JB.rate;
+  if(JB.ht>JB.newK+JBX)JB.ht=JB.newK+JBX;
+  if(JB.newK-JB.ht>need*2.5+12){ JB.ht=JB.newK-need; JB.bf=need; }      /* a long sleep: do not play the whole backlog in fast motion */
+  const ht=JB.ht; NET.ht=ht;
+  let i=0; while(i<b.length-1&&b[i+1].k<=ht)i++;
+  const e0=b[i], e1=b[i+1]||null, s0=e0.s, s1=e1?e1.s:null;
+  const ex=Math.max(0,ht-e0.k), u=s1?clamp(ex/(e1.k-e0.k),0,1):0, xe=Math.min(ex,JBX);
   G.ph=PHS[s0.p]||'fight'; G.phT=s0.pt; G.time=s0.tm; G.round=s0.rd; G.rw=s0.rw; G.win=s0.w; G.shake=s0.sh/10; G.punch=s0.pu;
   G.over=s0.o>=0?{w:s0.o}:null; G.hitstop=0; G.clock=Math.floor(ht);
   for(let n=0;n<2;n++){
-    const f=G.f[n],a=s0.f[n],c=s1?s1.f[n]:a, same=s1&&c[3]===a[3]&&c[5]===a[5];
+    const f=G.f[n],a=s0.f[n],c=s1?s1.f[n]:null, same=c&&c[3]===a[3]&&c[5]===a[5];
     f.px=f.x; f.py=f.y;
-    const t=s1?Math.min(u,1):0;
-    f.x=L(a[0],c[0],t); f.y=L(a[1],c[1],t);
-    if(a[3]===STI.thrown||(c[3]===STI.thrown))f.rot=L(a[17],c[17],t)/100; else f.rot=a[17]/100;
+    if(c){
+      const dk=e1.k-e0.k, cut=s0.rd!==s1.rd||Math.abs(c[0]-a[0])>45*dk||(s0.p!==s1.p&&Math.abs(c[0]-a[0])>25*dk);      /* a new round puts the fighters back at their marks: a cut, not a slide */
+      if(cut){ f.x=a[0]; f.y=a[1]; } else{ f.x=L(a[0],c[0],u); f.y=L(a[1],c[1],u); }
+    }else{      /* the newest snapshot is behind us: carry its motion on (position from the last two snapshots, a jump follows gravity) */
+      const q=i>0?b[i-1].s.f[n]:null, dk=i>0?e0.k-b[i-1].k:0, vx=q&&dk>0?clamp((a[0]-q[0])/dk,-40,40):0, vy=a[26]/10;
+      f.x=clamp(a[0]+vx*xe,-HW+34,HW-34); f.y=(a[1]>0||vy)?Math.max(0,a[1]+vy*xe-GR*xe*(xe+1)/2):a[1];
+    }
+    if(a[3]===STI.thrown||(c&&c[3]===STI.thrown))f.rot=(c?L(a[17],c[17],u):a[17])/100; else f.rot=a[17]/100;
     f.fc=a[2]; f.st=ST[a[3]]||'idle'; f.mv=a[5]>=0?MVL[a[5]]:null;
-    const adv=same?Math.min(ex,s1?(s1.k-s0.k):2):Math.min(ex,2);
+    const adv=same?Math.min(ex,e1.k-e0.k):Math.min(ex,s1?2:JBX);
     f.t=a[4]+adv-1; f.mf=a[6]+adv-1;
-    f.hp=L(a[7],c[7],t); f.hpG=L(a[8],c[8],t); f.cd=[a[9],a[10],a[11]]; f.flash=a[12]; f.say=a[13]; f.sayT=a[14]; f.weep=a[15]; f.bike=a[16];
+    f.hp=c?L(a[7],c[7],u):a[7]; f.hpG=c?L(a[8],c[8],u):a[8]; f.cd=[a[9],a[10],a[11]]; f.flash=a[12]; f.say=a[13]; f.sayT=a[14]; f.weep=a[15]; f.bike=a[16];
     f.thr=a[18]>=0?{t:a[18]+adv-1}:null; f.inv=a[19]; f.stun=a[20]; f.guard=a[21]; f.cbShow=a[22]; f.cbT=a[23]; f.taken=a[24]; f.vx=a[25]/10; f.vy=a[26]/10; f.pk=a[27]|0; f.bst=a[28]|0; f.dd=a[29]|0; f.slw=a[30]|0;
   }
-  const pj=[],P1=s1?s1.pj:[];
-  for(const p of s0.pj){ const q=P1.find(z=>z[0]===p[0]); const t=q?Math.min(u,1):0; pj.push({id:p[0],k:PJK[p[1]],x:q?L(p[2],q[2],t):p[2]+p[4]*ex,y:q?L(p[3],q[3],t):p[3]+p[5]*ex,vx:p[4],vy:p[5],rot:p[6]/100,own:p[7],life:p[8]===undefined?40:p[8],w:30,h:30}); const e=pj[pj.length-1]; if(e.k==='wall'){ e.w=WALL.w; e.h=WALL.h; e.hp=p[9]===undefined?WALL.hp:p[9]; e.hitT=p[10]|0; } }
+  const pj=[],P1=s1?s1.pj:[],pe=s1?Math.min(ex,2):xe;
+  for(const p of s0.pj){ const q=P1.find(z=>z[0]===p[0]); pj.push({id:p[0],k:PJK[p[1]],x:q?L(p[2],q[2],u):p[2]+p[4]*pe,y:q?L(p[3],q[3],u):p[3]+p[5]*pe,vx:p[4],vy:p[5],rot:p[6]/100,own:p[7],life:p[8]===undefined?40:p[8],w:30,h:30}); const e=pj[pj.length-1]; if(e.k==='wall'){ e.w=WALL.w; e.h=WALL.h; e.hp=p[9]===undefined?WALL.hp:p[9]; e.hitT=p[10]|0; } }
   G.proj=pj;
   /* events whose snapshot is now on screen */
-  for(const sn of b){ if(sn.k>ht)break; for(const e of sn.ev){ if(e[0]>NET.evSeen){ NET.evSeen=e[0]; fxEvent(e); } } }
+  for(const en of b){ if(en.k>ht)break; for(const e of en.s.ev){ if(e[0]>NET.evSeen){ NET.evSeen=e[0]; fxEvent(e); } } }
   return true;
 }
 
@@ -5217,8 +5258,8 @@ function probeVerdict(D){
 }
 function diagText(D){
   const y=v=>v===true?'yes':v===false?'no':String(v);
-  if(TARGET==='site'){ const ms=(D.mq&&D.mq.ms)||{}; return ['online: relay, no account','relays: '+(Object.keys(ms).map(k=>k+' '+(ms[k]==null?'…':ms[k]<0?'x':ms[k]+'ms')).join(', ')||'-'),'preferred: '+((D.mq&&D.mq.best)||'-'),'host: '+D.host,'ua: '+D.ua,'build: '+D.v].join('\n'); }
-  return ['claude: '+y(D.claude),'use(): '+y(D.use),'top-level page: '+y(D.top),'room: '+D.room,'permission(room): '+D.perm,'user: '+D.user+(D.user==='ok'?' (owner '+y(D.own)+', edit '+y(D.edit)+')':''),'host: '+D.host,'ua: '+D.ua,'build: '+D.v].join('\n');
+  if(TARGET==='site'){ const ms=(D.mq&&D.mq.ms)||{}; return ['online: relay, no account','relays: '+(Object.keys(ms).map(k=>k+' '+(ms[k]==null?'…':ms[k]<0?'x':ms[k]+'ms')).join(', ')||'-'),'preferred: '+((D.mq&&D.mq.best)||'-'),'host: '+D.host,'ua: '+D.ua,viewDiag(),'build: '+D.v].join('\n'); }
+  return ['claude: '+y(D.claude),'use(): '+y(D.use),'top-level page: '+y(D.top),'room: '+D.room,'permission(room): '+D.perm,'user: '+D.user+(D.user==='ok'?' (owner '+y(D.own)+', edit '+y(D.edit)+')':''),'host: '+D.host,'ua: '+D.ua,viewDiag(),'build: '+D.v].join('\n');
 }
 async function netProbe(force){
   if(NET.probeP){ if(!force)return NET.probeP; try{ await NET.probeP; }catch(e){} }
@@ -5347,8 +5388,17 @@ function probeSafe(){
   const s=getComputedStyle(p); SAFE.t=parseFloat(s.paddingTop)||0; SAFE.r=parseFloat(s.paddingRight)||0; SAFE.b=parseFloat(s.paddingBottom)||0; SAFE.l=parseFloat(s.paddingLeft)||0;
 }
 /* the canvas is only reallocated when its size really changes (the phone's address bar fires a stream of resize events while it slides) */
+/* The screen's size is read from the layout itself (the box of #app, which always fills the page), with innerWidth/innerHeight only as a fallback.
+   After a rotation some phones (the iPhone's browser, the app's web view) keep reporting the OLD size for a while and then send no further event:
+   the picture was drawn for the old shape and stretched over the new one (squashed to the top, an empty band below) and stayed like that.
+   So the box is also watched (ResizeObserver), checked again after every orientation signal, and checked a few times a second as a last resort. */
+function viewBox(){
+  const a=document.getElementById('app'); let w=a?a.clientWidth:0, h=a?a.clientHeight:0;
+  if(!(w>0&&h>0)){ w=innerWidth; h=innerHeight; }
+  return [w,h];
+}
 function resize(){
-  const w=Math.max(200,innerWidth), h=Math.max(200,innerHeight), q=QL[SET.q]||QL.high;
+  const vb=viewBox(), w=Math.max(200,vb[0]), h=Math.max(200,vb[1]), q=QL[SET.q]||QL.high;
   let d=Math.min(window.devicePixelRatio||1,q.cap); const px=w*h*d*d; if(px>q.px)d*=Math.sqrt(q.px/px);
   d=Math.max(.5,d*PF_LV[PF.lv].d);
   const nw=Math.max(2,Math.round(w*d)), nh=Math.max(2,Math.round(h*d)), sized=cv.width!==nw||cv.height!==nh;
@@ -5357,8 +5407,22 @@ function resize(){
   if(sized){ cv.width=nw; cv.height=nh; }
   if(sized||si!==SAFE.t+'|'+SAFE.r+'|'+SAFE.b+'|'+SAFE.l)UI.dirty=1;
   if(UI.scene==='menu'&&G.mode==='attract')CAM.gfo=VH>VW*1.05?.57:.73;
+  if(!(VH>VW*1.05)){ const r=document.getElementById('rot'); if(r&&r.style.display==='block')r.style.display='none'; }      /* the "turn your phone" tip has done its job */
 }
-let _rzT=0,_rzLast=0;
+function viewDiag(){      /* shown under "technical details": if a screen ever looks the wrong shape, these numbers say what the phone reported */
+  try{
+    const a=document.getElementById('app'), vv=window.visualViewport, o=(screen.orientation&&screen.orientation.type)||'-';
+    return 'view: draw '+VW+'x'+VH+' | box '+(a?a.clientWidth+'x'+a.clientHeight:'-')+' | inner '+innerWidth+'x'+innerHeight+(vv?' | vv '+Math.round(vv.width)+'x'+Math.round(vv.height)+'@'+(+vv.scale.toFixed(2)):'')+' | screen '+screen.width+'x'+screen.height+' '+o+' | dpr '+(window.devicePixelRatio||1)+' | safe '+[SAFE.t,SAFE.r,SAFE.b,SAFE.l].join('/');
+  }catch(e){ return 'view: ?'; }
+}
+let _rzT=0,_rzLast=0,_rzBurst=[],_vbT=0;
+function resizeBurst(){      /* a rotation: look again while the phone settles (the first reading is often still the old one) */
+  _rzBurst.forEach(clearTimeout); _rzBurst=[0,60,150,300,550,900,1500,2500].map(ms=>setTimeout(resize,ms));
+}
+function viewWatch(ts){      /* the last resort: the box is compared with what the picture was drawn for, a few times a second */
+  if(ts-_vbT<300)return; _vbT=ts;
+  const vb=viewBox(); if(Math.max(200,vb[0])!==VW||Math.max(200,vb[1])!==VH)resize();
+}
 function resizeSoon(){      /* the first event is applied at once, a burst of them at most ~8 times a second */
   const now=performance.now();
   if(!_rzT&&now-_rzLast>120){ _rzLast=now; resize(); return; }
@@ -5616,6 +5680,7 @@ function frame(ts){
   requestAnimationFrame(frame);
   if(!booted)return;
   try{
+    viewWatch(ts);
     let raw=ts-lastTs; if(!lastTs||raw<=0)raw=16.7; else pfRaw(raw); lastTs=ts;
     const dt=Math.min(50,raw); tNow+=dt/1000; frameN++;
     const sc=UI.scene, online=G.mode==='online', guest=online&&NET.role==='guest';
@@ -5658,7 +5723,12 @@ async function boot(){
     buildTouch(); buildHelp(); wireUI(); applyTsize(); renderVersion();
     UI.me=0; pfPref(); show('title'); netHashJoin(); if(TARGET==='site')addEventListener('hashchange',netHashJoin);   /* an invite link opened while the game is already open */
     addEventListener('resize',resizeSoon); if(window.visualViewport)visualViewport.addEventListener('resize',resizeSoon);
-    addEventListener('orientationchange',()=>setTimeout(resizeSoon,250));
+    addEventListener('orientationchange',resizeBurst);
+    try{ if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',resizeBurst); }catch(e){}
+    try{ const mq=matchMedia('(orientation:portrait)'); if(mq.addEventListener)mq.addEventListener('change',resizeBurst); else if(mq.addListener)mq.addListener(resizeBurst); }catch(e){}
+    try{ if(window.ResizeObserver)new ResizeObserver(resizeSoon).observe($('#app')); }catch(e){}
+    document.addEventListener('visibilitychange',()=>{ if(!document.hidden)resizeBurst(); });      /* back from another app, possibly turned meanwhile */
+    addEventListener('pageshow',resizeBurst);
     document.addEventListener('visibilitychange',()=>{ PF.drawAt=0; PF.warm=8; PF.dtAcc=0; });
     try{ await pfProbeEnd(); }catch(e){ PF.ready=true; }          /* nothing has been drawn yet: this measures the screen itself */
     booted=true;
