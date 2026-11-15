@@ -323,6 +323,8 @@ a.btn{text-decoration:none}
    <p class="muted" id="q-note" style="margin:0"></p>
    <div class="lab"><span>רטט בפגיעות חזקות</span></div><div class="chips" id="o-vib"></div>
    <div class="lab"><span>קולות לדמויות (ניסיוני)</span></div><div class="chips" id="o-voice"></div>
+   <div class="lab"><span>אונליין: הדמות שלי מגיבה מיד</span></div><div class="chips" id="o-pred"></div>
+   <p class="muted" style="margin:0">כשאתה אורח בלובי של מישהו אחר, הדמות שלך זזה על המסך שלך באותו רגע, והמארח מתקן את התמונה בעדינות. אם משהו נראה לך קופצני, אפשר לכבות.</p>
   </div>
   <div class="glass sec" id="sec-keys" hidden><h3>⌨️ מקשים</h3>
    <p class="muted" style="margin:0">לוחצים על מקש בטבלה ואז על המקש החדש במקלדת (Esc מבטל, Backspace מוריד מקש נוסף). מקש שכבר בשימוש מתחלף עם המקש הישן. דאש: לחיצה כפולה מהירה על המקש של שמאלה או ימינה.</p>
@@ -449,7 +451,7 @@ const store={
   set(k,v){try{localStorage.setItem('nf.'+k,JSON.stringify(v))}catch(e){}}
 };
 
-const VERSION='3.6';                 /* bump on every published change; shown in the game as "v.2.5" */
+const VERSION='3.7';                 /* bump on every published change; shown in the game as "v.2.5" */
 /* the HUD typeface: "Migdal HaEmek" (a very heavy, blocky Hebrew face by Elad Mizrahi, SIL Open Font License), embedded in the page as a data: font when its file sits in
    assets/fonts (build.py does that). It has Hebrew letters only, so digits and Latin letters come from Heebo (its 900 weight is the same blocky class); Secular One is the last
    resort. UIFONT_ON is set once the browser has really loaded the face (uiFontsReady); until then, or when it is not embedded, the HUD keeps the v3.0 type (Secular One, 400). */
@@ -878,7 +880,7 @@ const MUSIC=[
  {id:'mizrahi',name:'ים תיכוני',          sub:'מקצב מזרחי מקורי'},
 ];
 
-const DEFAULTS={stage:0,music:'arcade',mvol:.55,svol:.8,rounds:3,time:60,diff:1,touch:'auto',tsize:1,vib:1,q:'high',nick:'',voice:0,dev:'auto',keys:null};
+const DEFAULTS={stage:0,music:'arcade',mvol:.55,svol:.8,rounds:3,time:60,diff:1,touch:'auto',tsize:1,vib:1,q:'high',nick:'',voice:0,dev:'auto',keys:null,pred:1};
 const SET=Object.assign({},DEFAULTS,store.get('settings',{}));
 const saveSet=()=>store.set('settings',SET);
 const DIFFS=[{id:0,name:'קל'},{id:1,name:'בינוני'},{id:2,name:'קשה'}];
@@ -1554,7 +1556,10 @@ function simStep(){
   stepFast(G.f[0]); stepFast(G.f[1]);
   for(const p of G.proj)stepProj(p);
   G.proj=G.proj.filter(p=>!p.dead); stepRub();
-  const a=G.f[0],b=G.f[1];
+  pushBodies(G.f[0],G.f[1]);
+}
+/* two bodies never overlap: they are pushed apart (the online guest runs the same step for his own fighter, see 08_net.js) */
+function pushBodies(a,b){
   if(a.y<86&&b.y<86&&!a.bike&&!b.bike&&!a.thr&&!b.thr&&a.st!=='thrown'&&b.st!=='thrown'){
     const d=b.x-a.x,ov=hwOf(a)+hwOf(b)-Math.abs(d);
     if(ov>0){
@@ -4517,6 +4522,7 @@ function buildSettings(){
   qUi();
   chips('#o-vib',[[1,'פעיל'],[0,'כבוי']],()=>SET.vib,v=>SET.vib=v);
   chips('#o-voice',[[0,'כבוי'],[1,'פעיל']],()=>SET.voice,v=>SET.voice=v);
+  chips('#o-pred',[[1,'פעיל'],[0,'כבוי']],()=>SET.pred===0?0:1,v=>SET.pred=v);
   const nk=$('#o-nick'); nk.value=SET.nick||''; nk.oninput=()=>{ SET.nick=nk.value.slice(0,14); saveSet(); };
   $('#k-reset').onclick=()=>{ kbReset(); keysRefresh(); sfx('tap'); toast('המקשים חזרו לברירת המחדל'); };
   try{ if(navigator.keyboard&&navigator.keyboard.getLayoutMap&&!KB.lay)navigator.keyboard.getLayoutMap().then(m=>{ KB.lay=m; keysRefresh(); }).catch(()=>{}); }catch(e){}
@@ -4689,6 +4695,7 @@ addEventListener('appinstalled',()=>{ INST=null; syncInstall(); try{ toast('הא
 
 /* ---------- version / what's new ---------- */
 const CHANGES=[
+ ['3.7',['אונליין, כשאתה לא המנהל: הדמות שלך מגיבה מיד. עד עכשיו כל לחיצה נסעה למארח, חזרה ורק אז הופיעה על המסך, אחרי רבע עד חצי שנייה (ברשת סלולרית יותר). עכשיו המשחק מריץ את הדמות שלך אצלך, קצת קדימה, לפי הלחיצות: היא הולכת, קופצת, מתכופפת, עושה דאש ומכה באותו רגע (בבדיקות 10 עד 20 אלפיות השנייה במקום 200 עד 500). המארח נשאר הקובע: אם הוא מחליט אחרת (חטפת מכה, נחסמת, נזרקת, נתקעת בקיר או ביריב) התמונה מתיישרת אליו בחלקלקות','הצלילים של המכה, הקפיצה והדאש שלך מתנגנים מיד, ולא פעמיים. היריב והקליעים עדיין מוצגים בעיכוב הקטן שמחזיק את התמונה חלקה, ומכה שהיריב הנחית עליך מופיעה כשהיא מגיעה אליך','בהגדרות יש מתג חדש: "אונליין: הדמות שלי מגיבה מיד" (פעיל או כבוי), למקרה שמשהו נראה לך מוזר','אם היריב באונליין יוצא מהמשחק, אתה מקבל הודעה וחוזר לתפריט הראשי. אם הקליטה שלו רק נפלה לכמה שניות ממתינים לו. בלובי, כשאורח יוצא המנהל נשאר בלובי, וכשהמנהל יוצא האורח חוזר לתפריט הראשי','כדי לשחק אונליין שני הצדדים צריכים את אותה גרסה (v.3.7)']],
  ['3.6',['אונליין, כשאתה לא המנהל: התמונה אצל האורח חלקה. עד עכשיו היא התעדכנה רק בערך כל פריים רביעי ונתקעה כשהמארח נתקע לרגע או כשהרשת התנדנדה. עכשיו האורח רואה את מה שהמארח עשה עם עיכוב קטן שמתאים את עצמו לרשת (בערך 0.15 עד 0.25 שנייה ברשת טובה, יותר ברשת חלשה) ובלי קפיצות','המארח מצרף לכל עדכון את השעון שלו, כך שתקיעה של המארח לא נראית אצל האורח כרשת איטית ולא מנפחת את העיכוב','אם המארח נעלם באמצע משחק, ממתינים לו כמה שניות לפני שמוותרים. אם חבר נעלם בזמן שהוא מחזיק כפתור, הדמות שלו לא ממשיכה ללכת לבד','מסך הטלפון במצב אופקי: אחרי סיבוב, חלק מהטלפונים ממשיכים לדווח את הגודל הישן של המסך ולא שולחים אירוע חדש, והמשחק נשאר מצויר לאורך ונמתח לרוחב (כותרת דחוסה למעלה, לוחמים מעוכים ופס ריק למטה). עכשיו הגודל נמדד מהמסך עצמו ונבדק שוב אחרי כל סיבוב','בפרטים הטכניים של מסך האונליין מופיעים עכשיו גם מידות המסך כפי שהטלפון מדווח']],
  ['3.5',['דמות שמינית: מיכאל ממן, הגיימר. אוזניות על הצוואר ומכוש ביד במקום אגרופים: דקירה ארוכה (אגרוף קל), מכת מכוש כבדה מלמעלה (אגרוף חזק, אפשר לחסום רק בעמידה) וחפירה שמרימה את היריב. טווח ארוך יותר והתקפות קצת איטיות יותר, והבעיטות רגילות','מיכאל, שלוש מכות מיוחדות: חבטת מכוש (20%, הנפה גבוהה שמעיפה את היריב עם גל רסיסים, אי אפשר לחסום בהתכופפות), בנייה! (קיר עץ שעוצר את היריב ואת כל מה שהוא זורק או מכה דרכו, מיכאל והקליעים שלו עוברים דרכו, והקיר נשבר אחרי 3 מכות או 4 שניות) ושיקוי ריפוי (12% מהחיים בהדרגה, אבל בזמן השתייה הוא חשוף ומכה עוצרת אותה)','ריקוד ניצחון ומשפטי קרב משלו, והמחשב יודע לשחק איתו ונגדו (גם לשבור את הקיר)','מסך בחירת הדמות עם 8 כרטיסים: השמות מתכווצים לפי רוחב הכרטיס ונשארים קריאים בטלפון','אונליין: הקיר של מיכאל, החיים שלו והשיקוי מסונכרנים בין שני הטלפונים']],
  ['3.4',['תיקון ציור בבטן של ליאב וגל: החולצה היא עכשיו צורה אחת רציפה, בלי הקו והמלבן שנראו כמו תפר בבטן. שולי החולצה מעוגלים, עם תפר קטן, והיא יורדת על המכנסיים בצורה טבעית וגם בכריעה ובמכות','צווארונים טבעיים לכל הדמויות: המשולש החד שהיה בצוואר הוחלף בצווארון רך שיושב מאחורי הראש. בלירון וליאב יש עכשיו צווארון סרוג מעוגל, בדניאל, אדיר, אלי וגל צווארון קטן עם כנפיים מעוגלות, ובגאולה צווארון עגול. הצוואר עצמו מצויר מתחת לצווארון ולא נראים בו קווים']],
@@ -4933,7 +4940,8 @@ const NFMQ=(()=>{
 
 /* ============ 08 NET: lobby + host-authoritative online play over the `room` capability ============ */
 const NET={role:null,code:'',rm:null,room:null,myChar:-1,nick:'',cfg:{s:0,m:'arcade',r:3,t:60},sl:[null,null],ph:'l',mid:0,lastMid:0,rqSeen:{},
-  peers:[],hostP:null,meP:null,playing:false,buf:[],off:null,mask:0,pc:BTNS.map(()=>0),hc:[0,0,0,0,0],seen:[null,null],evSeen:0,unsub:[],lastS:null,pubT:0,busy:false,conn:true};
+  peers:[],hostP:null,meP:null,playing:false,buf:[],off:null,mask:0,pc:BTNS.map(()=>0),hc:[0,0,0,0,0],seen:[null,null],evSeen:0,unsub:[],lastS:null,pubT:0,busy:false,conn:true,
+  mp:null,pn:{},ids:null,leftT:{},sq:0,ak:[0,0]};      /* mp: the two players of the running match (host), pn: peer -> name, ids/leftT: who was here a moment ago (lobby toasts), sq: the guest's input messages counted, ak: the host's acknowledgement of them per player */
 const CODE_CH='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const BIT={l:1,r:2,u:4,d:8,b:16};
 const nfLog=()=>{};
@@ -4965,6 +4973,7 @@ async function netOpen(code,asHost){
   if(await netPermCheck()==='denied')throw 'denied';
   let rm; try{ rm=await room.join('nf-'+code.toLowerCase()); }catch(e){ throw (e&&e.code)||'upstream_error'; }
   NET.rm=rm; NET.code=code; NET.role=asHost?'host':'guest'; NET.ph='l'; NET.playing=false; NET.sl=[null,null]; NET.rqSeen={}; NET.buf.length=0; jbReset(); NET.evSeen=0; NET.lastMid=0; NET.mask=0; NET.pc=BTNS.map(()=>0); NET.hc=[0,0,0,0,0];
+  NET.mp=null; NET.pn={}; NET.ids=null; Object.values(NET.leftT).forEach(clearTimeout); NET.leftT={}; NET.sq=0; NET.ak=[0,0]; predReset();
   NET.tilesBuilt=0; NET.unsub.push(rm.onPeers(()=>netPeersChanged()));
   try{ NET.unsub.push(rm.onConnection(c=>{ NET.conn=c; if(!c&&NET.role)setTimeout(()=>{ if(!rm.connected()&&NET.role)toast('החיבור נותק… מנסה להתחבר מחדש'); },2500); })); }catch(e){}
   try{ await rm.presence(netMyPresence(asHost?{h:1,cfg:NET.cfg,sl:NET.sl,ph:'l',mid:0}:{})); }
@@ -5000,11 +5009,12 @@ async function netJoin(code,nick){
   while(Date.now()-t0<wait){ await sleep2(250); const h=rm.peers().find(p=>p.presence&&p.presence.h===1&&p.kind==='viewer'); if(h){ netPeersChanged(); return true; } }
   await netLeave(true); throw 'nolobby';
 }
-async function netLeave(silent){
+async function netLeave(silent,bye){
   NET.unsub.forEach(u=>{try{u()}catch(e){}}); NET.unsub=[];
-  clearTimeout(NET.lostTm); NET.lostTm=0; NET.hadHost=false;
+  clearTimeout(NET.lostTm); NET.lostTm=0; NET.hadHost=false; Object.values(NET.leftT).forEach(clearTimeout); NET.leftT={}; NET.mp=null; NET.ids=null;
   const rm=NET.rm; NET.rm=null; NET.role=null; NET.playing=false; NET.hostP=null; NET.meP=null; NET.peers=[]; NET.buf.length=0; jbReset();
-  try{ if(rm)await rm.leave(); }catch(e){}
+  /* bye: a deliberate exit says goodbye first (the others then do not wait to see whether a dropped line comes back) */
+  try{ if(rm){ if(bye){ try{ rm.presence({bye:1}); }catch(e){} await sleep2(250); } await rm.leave(); } }catch(e){}
 }
 
 function netPeersChanged(){
@@ -5013,7 +5023,9 @@ function netPeersChanged(){
   NET.peers=ps.slice().sort((a,b)=>(a.presence.j||0)-(b.presence.j||0));
   NET.meP=ps.find(p=>p.sameTab)||null;   /* sameTab = this very document; isMe would also match my other devices */
   NET.hostP=ps.find(p=>p.presence.h===1)||null;
+  for(const p of ps)NET.pn[p.peer]=p.presence.n||'';
   if(NET.role==='guest'){
+    if(NET.hostP&&NET.hostP.presence.bye===1&&NET.hadHost){ netHostLost(); return; }      /* he left on purpose: no need to wait */
     if(!NET.hostP){
       if(NET.hadHost&&!NET.lostTm){      /* a reconnect shows up as a missing host for a moment too: mid-match the lobby is closed only if he stays away */
         const go=()=>{ NET.lostTm=0; if(NET.role==='guest'&&!NET.hostP&&NET.hadHost){ NET.hadHost=false; netHostLost(); } };
@@ -5029,16 +5041,56 @@ function netPeersChanged(){
     else if(h.ph==='l'&&NET.ph==='p'){ NET.ph='l'; netBackLocal(); }
     if(h.s&&h.s.k!==NET.lastK){ NET.lastK=h.s.k; netPushSnap(h.s); }
   }else if(NET.role==='host'){
-    const ids=ps.map(p=>p.peer); let sl=NET.sl.map(x=>ids.includes(x)?x:null); const used=new Set(sl.filter(Boolean)); let ch=false;
+    const ids=ps.map(p=>p.peer), prevSl=NET.sl.slice(); let sl=NET.sl.map(x=>ids.includes(x)?x:null); const used=new Set(sl.filter(Boolean)); let ch=false;
     for(let i=0;i<2;i++)if(!sl[i]){ const c=ps.find(p=>!used.has(p.peer)); if(c){ sl[i]=c.peer; used.add(c.peer); } }
     if(sl[0]!==NET.sl[0]||sl[1]!==NET.sl[1]){ NET.sl=sl; ch=true; }
     if(ch&&NET.rm)NET.rm.presence({sl:NET.sl});
+    netWatchPlayers(ps,prevSl);
     /* a player asked for a rematch at the end of the match: everybody goes back to the lobby (the characters are kept, so the host can start at once) */
     for(const p of ps){ const q=p.presence.rq; if(q&&NET.rqSeen[p.peer]!==q){ NET.rqSeen[p.peer]=q; if(NET.ph==='p'&&G.ph==='over'&&NET.sl.includes(p.peer)){ toast((p.presence.n||'השחקן')+' ביקש משחק חוזר: חוזרים ללובי'); NET.backToLobby(); } } }
   }
   if(typeof renderLobby==='function'&&UI.cur==='lobby')renderLobby();
 }
-function netHostLost(){ if(!NET.role)return; clearTimeout(NET.lostTm); NET.lostTm=0; toast('מנהל הלובי יצא. הלובי נסגר'); netLeave(true).then(()=>{ if(NET.playing||UI.scene==='game'){ G.ph='menu'; $('#ov-over').classList.remove('on'); } UI.stack=['title']; show('online'); }); }
+/* The other player is gone: say so and go back to the main menu. */
+function netGoMenu(msg){
+  clearTimeout(NET.lostTm); NET.lostTm=0;
+  $('#ov-over').classList.remove('on'); $('#ov-pause').classList.remove('on'); UI.paused=false;
+  netLeave(true);
+  G.ph='menu'; UI.stack=[]; UI.menuNew=1; show('title'); musicPlay(SET.music);
+  toast(msg,5000);
+}
+const netWho=id=>NET.pn[id]||'';
+function netHostLost(){
+  if(!NET.role)return;
+  const nm=NET.hostP&&NET.hostP.presence.n||NET.pn[(NET.peers.find(p=>p.presence.h===1)||{}).peer]||'';
+  netGoMenu(NET.playing?(nm?nm+' יצא מהמשחק':'היריב יצא מהמשחק'):'מנהל הלובי יצא. הלובי נסגר');
+}
+/* host: a running match needs both players. A goodbye ends it at once; a line that merely vanished gets a few seconds to come back. In the lobby the host just hears who left. */
+function netWatchPlayers(ps,prevSl){
+  const by={}; for(const p of ps)by[p.peer]=p;
+  const mine=NET.meP?NET.meP.peer:null;
+  if(NET.playing&&NET.mp){
+    const gone=NET.mp.filter(id=>id&&id!==mine&&(!by[id]||by[id].presence.bye===1));
+    if(!gone.length){ if(NET.lostTm){ clearTimeout(NET.lostTm); NET.lostTm=0; toast('החיבור חזר'); } }
+    else{
+      const id=gone[0];
+      if(by[id]){ netOpponentLeft(id); }
+      else if(!NET.lostTm){ toast('החיבור ליריב נפסק… ממתין לו'); NET.lostTm=setTimeout(()=>{ NET.lostTm=0; if(NET.role==='host'&&NET.playing&&!NET.peers.some(p=>p.peer===id&&p.presence.bye!==1))netOpponentLeft(id); },5000); }
+    }
+  }else if(!NET.playing&&NET.ids){
+    for(const id of NET.ids){
+      if(id===mine||by[id]){ if(NET.leftT[id]&&by[id]){ clearTimeout(NET.leftT[id]); delete NET.leftT[id]; } continue; }
+      if(!NET.leftT[id]&&prevSl.includes(id))NET.leftT[id]=setTimeout(()=>{ delete NET.leftT[id]; if(NET.role==='host'&&!NET.playing&&!NET.peers.some(p=>p.peer===id))toast((netWho(id)||'שחקן')+' יצא מהלובי',3500); },1200);
+    }
+  }
+  NET.ids=ps.map(p=>p.peer);
+}
+function netOpponentLeft(id){
+  const nm=netWho(id), mine=NET.meP?NET.meP.peer:null, iPlay=!!(NET.mp&&mine&&NET.mp.includes(mine));
+  clearTimeout(NET.lostTm); NET.lostTm=0;
+  if(iPlay)netGoMenu(nm?nm+' יצא מהמשחק':'היריב יצא מהמשחק');
+  else{ toast((nm||'שחקן')+' יצא מהמשחק. חוזרים ללובי',4000); NET.backToLobby(); }      /* a host who only runs the lobby: the lobby stays */
+}
 
 /* ---- lobby actions ---- */
 NET.setChar=function(i){ NET.myChar=i; if(NET.rm)NET.rm.presence({c:i}); };
@@ -5061,15 +5113,15 @@ NET.start=function(){
   const p=i=>NET.peers.find(x=>x.peer===NET.sl[i]);
   const a=p(0),b=p(1);
   const mm={ch:[a.presence.c,b.presence.c],nm:[a.presence.n||'',b.presence.n||''],cfg:Object.assign({},NET.cfg)};
-  NET.ph='p'; NET.mid++; NET.seen=[null,null];
+  NET.ph='p'; NET.mid++; NET.seen=[null,null]; NET.mp=NET.sl.slice(); NET.ak=[0,0];
   NET.rm.presence({ph:'p',mid:NET.mid,mm,s:null});
   netStartLocal(mm,NET.meP?NET.sl.indexOf(NET.meP.peer):-1);
 };
 NET.backToLobby=function(){ if(NET.role==='host'){ NET.ph='l'; NET.playing=false; NET.rm.presence({ph:'l',s:null}); netBackLocal(); } };
 NET.requestRematch=function(){ if(NET.role==='guest'&&NET.rm)NET.rm.presence({rq:Date.now()}); };
-NET.leave=function(){ netLeave(); };
+NET.leave=function(){ return netLeave(false,true); };      /* a deliberate exit (menu button): says goodbye first */
 function netStartLocal(mm,me){
-  NET.playing=true; NET.buf.length=0; jbReset(); NET.evSeen=0; NET.mask=0; NET.pc=BTNS.map(()=>0); NET.hc=[0,0,0,0,0];
+  NET.playing=true; NET.buf.length=0; jbReset(); NET.evSeen=0; NET.mask=0; NET.pc=BTNS.map(()=>0); NET.hc=[0,0,0,0,0]; NET.sq=0; predReset();
   if(NET.rm)NET.rm.presence({i:0,pc:NET.pc,hc:NET.hc,m:NET.role==='host'?NET.mid:NET.lastMid});
   UI.stack=['lobby'];
   startGame({mode:'online',ch:mm.ch,cpu:[0,0],diff:0,rounds:mm.cfg.r,time:mm.cfg.t,stage:mm.cfg.s,music:mm.cfg.m,names:mm.nm,me:me});
@@ -5124,7 +5176,12 @@ function localHeld(k,v){ heldTo(UI.me,k,v); }
 function localPress(b){ pressTo(UI.me,b); }
 /* i: the arrows / block as they are held now; pc / hc: how many times every button / every arrow was PRESSED (counters, so a tap survives even when the relay merges two quick updates into one);
    m: the match the counters belong to (they start from zero in every match) */
-function netSendInput(){ if(NET.rm)NET.rm.presence({i:NET.mask,pc:NET.pc.slice(),hc:NET.hc.slice(),m:NET.lastMid}); }
+function netSendInput(){
+  if(!NET.rm)return;
+  const e={sq:++NET.sq,t:performance.now(),m:NET.mask,pc:NET.pc.slice(),hc:NET.hc.slice()};
+  if(NET.role==='guest')predLog(e);      /* the guest keeps what he sent (to run his own fighter ahead of the host) */
+  NET.rm.presence({i:e.m,pc:e.pc,hc:e.hc,m:NET.lastMid,sq:e.sq});      /* sq: the host says in its snapshots how far it has read */
+}
 function netHostInput(){
   if(NET.role!=='host'||!NET.playing)return;
   const hostSlot=NET.meP?NET.sl.indexOf(NET.meP.peer):-1;
@@ -5134,6 +5191,7 @@ function netHostInput(){
     const pr=p.presence; if(pr.i===undefined)continue;
     /* the guest enters a new match a moment after the host: until it says it has (m), what its presence shows is left over from the match before */
     if(pr.m!==NET.mid){ NET.seen[i]=null; for(const k of HK){ RAWI[i][k]=0; holdApply(i,k); } continue; }
+    NET.ak[i]=pr.sq|0;
     if(!NET.seen[i]||NET.seen[i].peer!==p.peer)NET.seen[i]={peer:p.peer,pc:BTNS.map(()=>0),hc:[0,0,0,0,0]};      /* every match starts the counters at zero: nothing the guest pressed so far may be dropped */
     const sn=NET.seen[i].pc, sh=NET.seen[i].hc, hc=pr.hc;
     for(let n=0;n<5;n++){ const k=HK[n], v=(pr.i&BIT[k])?1:0;
@@ -5144,12 +5202,154 @@ function netHostInput(){
   }
 }
 
+/* ---------- guest: the own fighter runs a little ahead of the host (v3.7) ----------
+   The guest used to see his own key press only after a whole round trip plus the playout buffer: about 300 ms on a good line, more on a phone.
+   Now he runs the REAL sim step (stepF) for his own fighter only, from the newest host snapshot, forward over
+     - the time that news has been on its way (now - the host's clock stamp - the usual lateness), plus
+     - the time his own keys need to reach the host (one round trip; measured from the host's acknowledgements, ak, of his numbered input messages),
+   and applies the keys he pressed since at the moments the host will apply them (so a press that the host has not read yet is already in).
+   The host stays the only authority. Every new snapshot restarts the run from the host's truth, and the small difference to what he saw is faded
+   out in ~100 ms (PRED.E). Whenever the host's own fighter is in anything but a free state (hit, blocked, thrown, knocked down, frozen, paralysed)
+   the host's picture is shown as it is. The opponent is never predicted: he stays on the playout buffer. */
+const PRED={R:130,nR:0,ak:0,log:[],E:{x:0,y:0},last:null,hbT:0,rd:-1,ph:'',sh:null,op:null,dead:0,on:1,fired:[],
+  st:{frames:0,pred:0,fix:0,fixSum:0,fixMax:0,snap:0,M:0,n:0,big:[]}};
+const PRED_FREE={idle:1,walk:1,crouch:1,jump:1,dash:1,atk:1};
+const PRED_MAXM=22, PRED_TAU=95, PRED_TAU0=60, PRED_SB=['proj','ev','evLog','evId','pjId','shake','punch','qk','hitstop','clock','ph','f'];
+function predReset(){ PRED.fired.length=0; PRED.log.length=0; PRED.ak=0; PRED.nR=0; PRED.R=130; PRED.E.x=PRED.E.y=0; PRED.last=null; PRED.hbT=0; PRED.rd=-1; PRED.ph=''; }
+function predLog(e){ const L=PRED.log; L.push(e); PRED.hbT=e.t; while(L.length>40)L.shift(); }
+/* a snapshot says how many of my input messages the host has read (ak): that message took one round trip */
+function predAck(s,now){
+  const me=UI.me; if(me<0||!s.ak||NET.role!=='guest')return;
+  const ak=s.ak[me]|0; if(ak<=PRED.ak||ak>NET.sq)return;      /* (an acknowledgement of a message I never sent is left over from an earlier match) */
+  PRED.ak=ak; const L=PRED.log; let e=null;
+  for(let i=L.length-1;i>=0;i--)if(L[i].sq===ak){ e=L[i]; break; }
+  if(e){
+    const smp=clamp(now-e.t,15,700);
+    if(!PRED.nR)PRED.R=smp; else PRED.R+=(Math.min(smp,PRED.R*2.2+40)-PRED.R)*(PRED.nR<5?.35:.12);
+    PRED.nR++;
+  }
+  while(L.length>8&&L[1].sq<=ak-6)L.shift();      /* (the last acknowledged ones stay: a key tap is held for 3 ticks, and the next one counts its presses from them) */
+}
+const PRED_LOAD=(f,a,i,ch,dummy)=>{
+  f.i=i; f.ch=ch; f.x=a[0]; f.y=a[1]; f.px=a[0]; f.py=a[1]; f.fc=a[2]; f.st=ST[a[3]]||'idle'; f.t=a[4]; f.mv=a[5]>=0?MVL[a[5]]:null; f.mf=a[6];
+  f.hp=a[7]; f.hpG=a[8]; f.cd=[a[9],a[10],a[11]]; f.flash=0; f.say=-1; f.sayT=0; f.weep=a[15]; f.bike=a[16]; f.rot=0; f.thr=null;
+  f.inv=dummy?9999:a[19]; f.stun=a[20]; f.guard=a[21]; f.cbShow=0; f.cbT=0; f.taken=a[24]; f.vx=a[25]/10; f.vy=a[26]/10; f.pk=a[27]|0; f.bst=0; f.dd=a[29]|0; f.slw=a[30]|0;
+  f.hit=a[31]|0; f.chainN=a[32]|0; f.dcd=a[33]|0; f.imm=a[34]|0;
+  f.q=[]; f.jug=0; f.jugLock=0; f.uHeld=0; f.cdT=0; f.tx=0; f.mvn=0; f.walkPh=0; f.hs2=0; f.ai=null;
+  f.dv=f.st==='dash'?f.dd*(f.dd===f.fc?DASH.fv:DASH.bv)*(f.weep>0?.75:1):0;
+  f.inp.l=f.inp.r=f.inp.u=f.inp.d=f.inp.b=0;
+};
+/* The run: my fighter from the newest snapshot to "now" (+ one round trip). Returns {x,y,sh} (sh: the final state of the run) or null when there is nothing to predict. */
+function predRaw(me,now){
+  const B=NET.buf; if(!B.length||!JB.n||G.ph!=='fight')return null;
+  let e=null;      /* the newest snapshot in which my fighter is free; while the host's picture still shows him free it may be older than the newest one (a hit that is on its way to the screen is not run past) */
+  for(let n=B.length-1;n>=0&&B[n].k>=NET.e0k;n--){ const f0=B[n].s.f[me]; if(B[n].s.hw!==undefined&&PHS[B[n].s.p]==='fight'&&f0&&f0.length>=35&&PRED_FREE[ST[f0[3]]]&&f0[18]<0){ e=B[n]; break; } }
+  if(!e)return null;
+  const s=e.s, a=s.f[me], c=s.f[1-me];
+  const reff=Math.max(20,PRED.R-8);
+  let M=(now-s.hw-JB.mu+reff)/DT; if(M<0)M=0;
+  const shift=Math.max(0,M-PRED_MAXM); M-=shift;      /* the news is very old (the line stalled): run a bounded stretch, the newest keys count */
+  const n=Math.ceil(M), fr=n?M-(n-1):1, hs=s.hs|0, ak=s.ak?s.ak[me]|0:PRED.ak;
+  const sh=PRED.sh||(PRED.sh=newF(me,0)), op=PRED.op||(PRED.op=newF(1-me,0));
+  PRED_LOAD(sh,a,me,G.f[me].ch,0); PRED_LOAD(op,c,1-me,G.f[1-me].ch,1);
+  /* my numbered messages -> the tick (counted from the snapshot) at which the host will read each one */
+  const L=PRED.log, ev=[]; let cur=0, hold=[0,0,0,0,0], prev=null, cause=0;      /* cause: how many presses of mine the run has seen so far (a counter that never goes back: it names the press behind a swing) */
+  for(let q=0;q<L.length;q++){
+    const x=L[q], j=(x.t+reff-s.hw-JB.mu)/DT-shift, idx=Math.round(j)-1, acked=x.sq<=ak;
+    const hc=[0,0,0,0,0], pc=BTNS.map(()=>0);
+    if(prev){ for(let k=0;k<5;k++)hc[k]=Math.max(0,x.hc[k]-prev.hc[k]); for(let k=0;k<BTNS.length;k++)pc[k]=Math.max(0,x.pc[k]-prev.pc[k]); }
+    prev=x; const tot=x.pc.reduce((a,b)=>a+b,0);
+    if(acked){ cause=tot; cur=x.m; for(let k=0;k<5;k++)if(hc[k])hold[k]=Math.max(hold[k],idx+3); }      /* the host has read it: it is in the snapshot already; only a tap's 3-tick hold may reach into the run */
+    else ev.push({at:Math.max(0,idx),m:x.m,hc,pc,tot,pr:pc.some(v=>v>0)});
+  }
+  sh.uHeld=(cur&BIT.u)||hold[2]>0?1:0;
+  const gs={}; for(const k of PRED_SB)gs[k]=G[k];
+  let px=sh.x, py=sh.y, bad=0; const evs=[];
+  try{
+    G.proj=G.proj.filter(p=>p.k==='wall').map(p=>Object.assign({},p)); G.ev=[]; G.evLog=[]; G.ph='fight';
+    G.f=me?[op,sh]:[sh,op];
+    let ei=0, evN=0;
+    for(let j=0;j<n;j++){
+      while(ei<ev.length&&ev[ei].at<=j){
+        const x=ev[ei++]; cur=x.m;
+        for(let k=0;k<5;k++)if(x.hc[k])hold[k]=Math.max(hold[k],j+3);
+        for(let k=0;k<BTNS.length;k++)if(x.pc[k]>0){ press(sh,BTNS[k]); if(x.pc[k]>1)press(sh,BTNS[k]); }
+        if(x.pr)cause=x.tot;
+      }
+      for(let k=0;k<5;k++)sh.inp[HK[k]]=((cur&BIT[HK[k]])||j<hold[k])?1:0;
+      if(j<hs)continue;      /* the sim is frozen (hit-stop): keys are read, nothing moves */
+      if(j===n-1){ px=sh.x; py=sh.y; }
+      G.clock=s.k+1+j;
+      stepFast(sh); op.x=clamp(op.x+op.vx,-HW+34,HW-34); op.vx*=.92; pushBodies(me?op:sh,me?sh:op);      /* (the opponent walks on a little at the speed he had) */
+      for(;evN<G.ev.length;evN++)evs.push({e:G.ev[evN],j,c:cause});
+      if(sh.thr||sh.st==='thrown'){ bad=1; break; }
+    }
+  }catch(err){ bad=1; PRED.dead=1; PRED.err=String(err&&err.stack||err); }
+  finally{ for(const k of PRED_SB)G[k]=gs[k]; }
+  if(bad||!PRED_FREE[sh.st])return null;
+  return {x:L2(px,sh.x,fr),y:L2(py,sh.y,fr),sh,M,evs,n,k0:s.k};
+}
+const L2=(a,b,t)=>a+(b-a)*t;
+/* The sounds and puffs of my own actions (a swing, a jump, a dash) are played the moment the run shows them; the same event from the host, which comes later, is then dropped. */
+const PRED_EV={w:1,j:1,a:1,v:1};
+function predFire(raw,now,me){
+  const F=PRED.fired; while(F.length&&now-F[0].at>3000)F.shift();
+  for(const q of raw.evs){
+    const e=q.e, t=e[1]; if(!PRED_EV[t]||q.j<raw.n-5)continue;
+    if((t==='w'||t==='a')&&e[5]!==me)continue; if(t==='v'&&e[4]!==me)continue;
+    const k=raw.k0+1+q.j; let dup=false;
+    /* the same action is seen again by every new run (a newer snapshot, a bigger stretch, a press that the host has not read yet and that is therefore placed afresh each time):
+       a swing is named by the press behind it (one press, one swing); a jump, a dash or a scooter ride cannot come twice within a quarter of a second */
+    for(const x of F){
+      if(x.t!==t)continue;
+      if(t==='w'&&q.c>0&&x.c===q.c){ dup=true; break; }
+      if(t!=='w'&&now-x.at<250){ dup=true; break; }
+      if(Math.abs(x.k-k)<=3&&now-x.at<400){ dup=true; break; }
+    }
+    if(dup)continue;
+    F.push({t,k,c:q.c,at:now,claimed:false}); fxEvent(e.slice());
+  }
+}
+function predClaim(e,now){      /* true: this event of the host was already played from my own run */
+  if(!PRED.last||!PRED_EV[e[1]]||UI.me<0)return false;
+  const me=UI.me, t=e[1];
+  if((t==='w'||t==='a')&&e[5]!==me)return false; if(t==='v'&&e[4]!==me)return false;
+  if(t==='j'){ const a=G.f[me],o=G.f[1-me]; if(Math.abs(e[2]-a.x)>Math.abs(e[2]-o.x))return false; }
+  const win=Math.min(2600,600+2*PRED.R);      /* (the host's copy comes one round trip and the playout buffer after mine) */
+  for(const x of PRED.fired)if(x.t===t&&!x.claimed&&now-x.at<win){ x.claimed=true; return true; }
+  return false;
+}
+function predApply(now,dtm){
+  const me=UI.me; if(me<0||PRED.dead||!PRED.on||SET.pred===0||G.mode!=='online'||NET.role!=='guest')return;
+  const f=G.f[me]; if(!f)return;
+  if(PRED.rd!==G.round||PRED.ph!==G.ph){ PRED.rd=G.round; PRED.ph=G.ph; PRED.E.x=PRED.E.y=0; PRED.last=null; }      /* a new round puts the fighters back at their marks: nothing is carried over */
+  if(!PRED.last){ if(G.ph!=='fight')return; PRED.last={src:0,base:-1,dx:f.x,dy:f.y,dx2:f.x,dy2:f.y}; }      /* the first frame: start from the picture that is on screen */
+  const B=NET.buf, base=B.length?B[B.length-1].k:-1, raw=predRaw(me,now), src=raw?1:0, E=PRED.E, S=PRED.st;
+  const sx=raw?raw.x:f.x, sy=raw?raw.y:f.y, Lq=PRED.last;
+  S.frames++; if(raw){ S.pred++; S.M=raw.M; predFire(raw,now,me); }
+  if(Lq&&(Lq.src!==src||(src&&Lq.base!==base))){      /* the source jumped (a new snapshot, or the host's picture takes over): carry on from where the picture was */
+    const jx=Lq.dx+(Lq.dx-Lq.dx2)-sx, jy=Lq.dy+(Lq.dy-Lq.dy2)-sy;
+    E.x=jx; E.y=jy;
+    const mag=Math.hypot(jx,jy); S.fix++; S.fixSum+=mag; if(mag>S.fixMax)S.fixMax=mag;
+    if(mag>22&&S.big.length<24)S.big.push([Math.round(now),Math.round(mag),Lq.src+'>'+src,B.length?ST[B[B.length-1].s.f[me][3]]:'',Math.round(jx),Math.round(jy)]);
+  }else{ const d=Math.exp(-Math.max(0,Math.min(100,dtm))/(src?PRED_TAU:PRED_TAU0)); E.x*=d; E.y*=d; }
+  if(Math.abs(E.x)>140||Math.abs(E.y)>140){ E.x=E.y=0; S.snap++; }
+  const dx=sx+E.x, dy=Math.max(0,sy+E.y);
+  if(raw){
+    const h=raw.sh;
+    f.fc=h.fc; f.st=h.st; f.mv=h.mv; f.mf=h.mf; f.t=h.t; f.vx=h.vx; f.vy=h.vy; f.guard=h.guard; f.bike=h.bike; f.dd=h.dd; f.thr=null; f.rot=0;
+    for(let k=0;k<3;k++)if(h.cd[k]>f.cd[k])f.cd[k]=h.cd[k];      /* a special I just used shows its cooldown at once */
+  }
+  f.x=dx; f.y=dy;
+  PRED.last={src,base,dx,dy,dx2:Lq?Lq.dx:dx,dy2:Lq?Lq.dy:dy};
+}
+
 /* ---- host snapshot ---- */
 const r1=v=>Math.round(v*10)/10;
 function netMakeSnap(){
-  const fs=G.f.map(f=>[r1(f.x),r1(f.y),f.fc,STI[f.st],f.t|0,f.mv?f.mv.n:-1,f.mf|0,r1(f.hp),r1(f.hpG),f.cd[0],f.cd[1],f.cd[2],f.flash,f.say,f.sayT,f.weep,f.bike,Math.round(f.rot*100),f.thr?f.thr.t:-1,f.inv,f.stun|0,f.guard,f.cbShow,f.cbT,f.taken,Math.round(f.vx*10),Math.round(f.vy*10),f.pk|0,f.bst|0,f.dd|0,f.slw|0]);
+  const fs=G.f.map(f=>[r1(f.x),r1(f.y),f.fc,STI[f.st],f.t|0,f.mv?f.mv.n:-1,f.mf|0,r1(f.hp),r1(f.hpG),f.cd[0],f.cd[1],f.cd[2],f.flash,f.say,f.sayT,f.weep,f.bike,Math.round(f.rot*100),f.thr?f.thr.t:-1,f.inv,f.stun|0,f.guard,f.cbShow,f.cbT,f.taken,Math.round(f.vx*10),Math.round(f.vy*10),f.pk|0,f.bst|0,f.dd|0,f.slw|0,f.hit|0,f.chainN|0,f.dcd|0,f.imm|0]);      /* [31..34] v3.7: what the guest needs to run his own fighter ahead */
   const pj=G.proj.map(p=>p.k==='wall'?[p.id,PJK.indexOf(p.k),r1(p.x),r1(p.y),0,0,0,p.own,p.life|0,p.hp|0,p.hitT|0]:[p.id,PJK.indexOf(p.k),r1(p.x),r1(p.y),r1(p.vx),r1(p.vy),Math.round(p.rot*100),p.own,p.life|0]);      /* v3.5: a wall row carries its hp and hit flash too */
-  return {k:G.clock,hw:Math.round(performance.now()),p:PHS.indexOf(G.ph),pt:G.phT,tm:G.time,rd:G.round,rw:G.rw,w:G.win,sh:Math.round(G.shake*10),pu:G.punch,o:G.over?G.over.w:-1,f:fs,pj,ev:G.evLog.slice(-14)};
+  return {k:G.clock,hw:Math.round(performance.now()),p:PHS.indexOf(G.ph),pt:G.phT,tm:G.time,rd:G.round,rw:G.rw,w:G.win,sh:Math.round(G.shake*10),pu:G.punch,o:G.over?G.over.w:-1,f:fs,pj,ev:G.evLog.slice(-14),hs:G.hitstop|0,ak:NET.ak.slice()};
 }
 function netPublishSnap(){ if(NET.rm)NET.rm.presence({s:netMakeSnap()}); }
 
@@ -5180,11 +5380,13 @@ function netPushSnap(s,now){
   }
   JB.n++; JB.newK=s.k; JB.newT=now;
   b.push({k:s.k,ta:now,s}); while(b.length>40)b.shift();
+  predAck(s,now);
 }
 const L=(a,b,t)=>a+(b-a)*t;
 function netGuestApply(now){
   const b=NET.buf; if(!b.length||!JB.n)return false;
   const dtm=Math.min(100,Math.max(0,now-JB.t)); JB.t=now;
+  if(PRED.on&&SET.pred!==0&&NET.rm&&NET.playing&&UI.me>=0&&now-PRED.hbT>(PRED.nR<6?250:1000))netSendInput();      /* a quiet hand still measures the round trip (the host acknowledges every message) */
   const need=jbNeed(), B=JB.newK-JB.ht;
   JB.bf+=(B-JB.bf)*(1-Math.exp(-dtm/JBP.tau));
   JB.rate=1+clamp(JBP.kp*(JB.bf-need),-JBP.slow,JBP.fast); JB.ht+=dtm/DT*JB.rate;
@@ -5192,7 +5394,7 @@ function netGuestApply(now){
   if(JB.newK-JB.ht>need*2.5+12){ JB.ht=JB.newK-need; JB.bf=need; }      /* a long sleep: do not play the whole backlog in fast motion */
   const ht=JB.ht; NET.ht=ht;
   let i=0; while(i<b.length-1&&b[i+1].k<=ht)i++;
-  const e0=b[i], e1=b[i+1]||null, s0=e0.s, s1=e1?e1.s:null;
+  const e0=b[i], e1=b[i+1]||null, s0=e0.s, s1=e1?e1.s:null; NET.e0k=e0.k;
   const ex=Math.max(0,ht-e0.k), u=s1?clamp(ex/(e1.k-e0.k),0,1):0, xe=Math.min(ex,JBX);
   G.ph=PHS[s0.p]||'fight'; G.phT=s0.pt; G.time=s0.tm; G.round=s0.rd; G.rw=s0.rw; G.win=s0.w; G.shake=s0.sh/10; G.punch=s0.pu;
   G.over=s0.o>=0?{w:s0.o}:null; G.hitstop=0; G.clock=Math.floor(ht);
@@ -5213,11 +5415,12 @@ function netGuestApply(now){
     f.hp=c?L(a[7],c[7],u):a[7]; f.hpG=c?L(a[8],c[8],u):a[8]; f.cd=[a[9],a[10],a[11]]; f.flash=a[12]; f.say=a[13]; f.sayT=a[14]; f.weep=a[15]; f.bike=a[16];
     f.thr=a[18]>=0?{t:a[18]+adv-1}:null; f.inv=a[19]; f.stun=a[20]; f.guard=a[21]; f.cbShow=a[22]; f.cbT=a[23]; f.taken=a[24]; f.vx=a[25]/10; f.vy=a[26]/10; f.pk=a[27]|0; f.bst=a[28]|0; f.dd=a[29]|0; f.slw=a[30]|0;
   }
+  predApply(now,dtm);      /* his own fighter runs ahead of the host's picture (v3.7) */
   const pj=[],P1=s1?s1.pj:[],pe=s1?Math.min(ex,2):xe;
   for(const p of s0.pj){ const q=P1.find(z=>z[0]===p[0]); pj.push({id:p[0],k:PJK[p[1]],x:q?L(p[2],q[2],u):p[2]+p[4]*pe,y:q?L(p[3],q[3],u):p[3]+p[5]*pe,vx:p[4],vy:p[5],rot:p[6]/100,own:p[7],life:p[8]===undefined?40:p[8],w:30,h:30}); const e=pj[pj.length-1]; if(e.k==='wall'){ e.w=WALL.w; e.h=WALL.h; e.hp=p[9]===undefined?WALL.hp:p[9]; e.hitT=p[10]|0; } }
   G.proj=pj;
   /* events whose snapshot is now on screen */
-  for(const en of b){ if(en.k>ht)break; for(const e of en.s.ev){ if(e[0]>NET.evSeen){ NET.evSeen=e[0]; fxEvent(e); } } }
+  for(const en of b){ if(en.k>ht)break; for(const e of en.s.ev){ if(e[0]>NET.evSeen){ NET.evSeen=e[0]; if(!predClaim(e,now))fxEvent(e); } } }
   return true;
 }
 
